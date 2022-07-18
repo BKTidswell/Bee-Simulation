@@ -3,6 +3,15 @@ title: "Full Bee Sim"
 output: html_notebook
 ---
 
+To do:
+ - Change matrix to array to allow for a second dimension with counts.
+ - Add ability for bees to eat
+ - Have bees add honey or pollen to already existing or empty
+ - Have bees check nearby brood for eating honey
+ - Add Queen
+    - Have Queen check for brood before laying
+ - Add day and night
+ - Allow brood to hatch
 
 ```{r}
 library(tidyverse)
@@ -11,7 +20,7 @@ library(reshape2)
 library(R6)
 ```
 
-Defien variables
+Define variables
 ```{r}
 BROOD <- 1
 POLLEN <- 2
