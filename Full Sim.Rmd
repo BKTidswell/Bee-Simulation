@@ -4,7 +4,6 @@ output: html_notebook
 ---
 
 To do:
- - Change matrix to array to allow for a second dimension with counts.
  - Add ability for bees to eat
  - Have bees add honey or pollen to already existing or empty
  - Have bees check nearby brood for eating honey
@@ -31,10 +30,10 @@ EMPTY <- 0
 
 Define Starting Honeycomb
 ```{r}
-MAX_ROWS <- 30
-MAX_COLS <- 30
+MAX_ROWS <- 10
+MAX_COLS <- 10
 
-hive <- matrix(EMPTY,MAX_ROWS,MAX_COLS)
+hive <- array(EMPTY, dim = c(MAX_ROWS,MAX_COLS, 2)) #matrix(EMPTY,MAX_ROWS,MAX_COLS)
 ```
 
 Makes the beehive graph framework
@@ -68,7 +67,7 @@ This takes a given hive and turns it into a graph
 ```{r}
 
 hive_matrix_to_graph <- function(hive_data){
-  hive_df <- as.data.frame(as.table(hive_data))
+  hive_df <- as.data.frame(as.table(hive_data[,,1]))
   colnames(hive_df) <- c("x","y","contents")
   hive_df <- hive_df %>% mutate(id = 1:(MAX_COLS*MAX_ROWS)) %>% 
                          mutate(named_content = ifelse(contents == 0, "Empty",
@@ -131,8 +130,6 @@ hex_move <- function(cur_X,cur_Y,prev_X,prev_Y){
   return(c(next_hex$x,next_hex$y))
 }
 
-hex_move(2,2,3,3)
-
 ```
 
 Defines what a bee is 
@@ -161,7 +158,7 @@ Bee <- R6Class("Bee",
                    #print(c(self$cur_X,self$cur_Y))
                  },
                  alter_comb = function(current_hive){
-                   current_hive[self$cur_X,self$cur_Y] <- self$carry
+                   current_hive[self$cur_X,self$cur_Y,1] <- self$carry
                    return(current_hive)
                  },
                  buzz = function(){
@@ -184,13 +181,13 @@ for(n in 1:n_bees){
   bees <- append(bees, list(Bee$new(sample(1:MAX_ROWS, 1), sample(1:MAX_COLS, 1), sample(can_carry, 1))))
 }
 
-hive <- matrix(EMPTY,MAX_ROWS,MAX_COLS)
+hive <- array(EMPTY, dim = c(MAX_ROWS,MAX_COLS, 2))
 
 colnames(hive) <- 1:MAX_COLS
 rownames(hive) <- 1:MAX_ROWS
 
 
-for(x in 1:100){
+for(x in 1:20){
   for(i in 1:length(bees)){
     hive <- bees[[i]]$alter_comb(hive)
     bees[[i]]$move()
