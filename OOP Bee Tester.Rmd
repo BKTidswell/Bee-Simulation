@@ -1,0 +1,167 @@
+---
+title: "OOP Bee Tester"
+output: html_notebook
+---
+
+```{r}
+library(R6)
+library(tidyverse)
+```
+
+```{r}
+BROOD <- 1
+POLLEN <- 2
+HONEY <- 3 
+EMPTY <- 0
+```
+
+
+Define Starting Honeycomb
+
+```{r}
+
+MAX_ROWS <- 30
+MAX_COLS <- 30
+
+hive <- matrix(EMPTY,MAX_ROWS,MAX_COLS)
+
+```
+
+Moving through hexagons (https://www.redblobgames.com/grids/hexagons/)
+If we store the hexagon values in a 2D grid we need to know which "squares" are actually next to each other on a hexagonal grid
+
+On a square grid we can move from [X,Y] to [X+1,Y], [X-1,Y], [X,Y+1], and [X,Y-1], if we remove diagonals
+
+On a hexagonal grid (using what they call “odd-r” horizontal layout) we can move from [X,Y] to:
+    [X-1,Y-1], [X-1,Y], [X-1,Y+1], [X,Y+1], [X+1,Y], [X,Y-1]
+    
+But that's *just* for the odd rows (1 indexed). For the even rows it's: 
+    [X,Y-1], [X-1,Y], [X,Y+1], [X+1,Y+1], [X+1,Y], [X+1,Y-1]
+
+```{r}
+
+hex_move <- function(cur_X,cur_Y,prev_X,prev_Y){
+  even_row_legal_hexes <- tibble(
+                                x = c(cur_X,cur_X-1,cur_X,cur_X+1,cur_X+1,cur_X+1),
+                                y = c(cur_Y-1,cur_Y,cur_Y+1,cur_Y+1,cur_Y,cur_Y-1)
+                               )
+  odd_row_legal_hexes <- tibble(
+                                x = c(cur_X-1,cur_X-1,cur_X-1,cur_X,cur_X+1,cur_X),
+                                y = c(cur_Y-1,cur_Y,cur_Y+1,cur_Y+1,cur_Y,cur_Y-1)
+                               )
+  
+  #check if our row is even or odd
+  if(cur_Y %% 2 == 0){
+    legal_hexes <- even_row_legal_hexes
+  }
+  else{
+    legal_hexes <- odd_row_legal_hexes
+  }
+  
+  #Makes sure it can't move back to where it was, or to the last square it was on
+  #Also R is 1 indexed, so it can't be 0 or less
+  legal_hexes <- legal_hexes %>% filter(x > 0) %>% filter(y > 0) %>%
+                                 filter(x <= MAX_ROWS) %>% filter(y <= MAX_COLS) %>%
+                                 filter(!(x == prev_X & y == prev_Y))
+  
+  next_hex <- legal_hexes %>% sample_n(1)
+  
+  return(c(next_hex$x,next_hex$y))
+}
+
+hex_move(2,2,3,3)
+
+```
+
+```{r}
+Bee <- R6Class("Bee",
+               public = list(
+                 cur_X = NULL,
+                 cur_Y = NULL,
+                 prev_X = -1,
+                 prev_Y = -1,
+                 carry = NULL,
+                 initialize = function(cur_X = NA, cur_Y = NA, carry = NA) {
+                    self$cur_X <- cur_X
+                    self$cur_Y <- cur_Y
+                    self$carry <- carry
+                  },
+                 move = function(){
+                   next_hex <- hex_move(self$cur_X,self$cur_Y,self$prev_X,self$prev_Y)
+                   
+                   self$prev_X <- self$cur_X
+                   self$prev_Y <- self$cur_Y
+                   
+                   self$cur_X <- next_hex[1]
+                   self$cur_Y <- next_hex[2]
+                   
+                   #print(c(self$cur_X,self$cur_Y))
+                 },
+                 alter_comb = function(current_hive){
+                   current_hive[self$cur_X,self$cur_Y] <- self$carry
+                   return(current_hive)
+                 },
+                 buzz = function(){
+                   cat(paste0("Hello, I am a bee carrying ", self$carry, " at X = ", self$cur_X, " and Y = ", self$cur_Y, ".\n"))
+                 }
+               )
+             )
+```
+
+```{r}
+can_carry <- c(HONEY,POLLEN,BROOD)
+
+n_bees = 20
+
+bees <- list()
+
+for(n in 1:n_bees){
+  bees <- append(bees, list(Bee$new(sample(1:MAX_ROWS, 1), sample(1:MAX_COLS, 1), sample(can_carry, 1))))
+}
+
+hive <- matrix(EMPTY,MAX_ROWS,MAX_COLS)
+
+colnames(hive) <- 1:MAX_COLS
+rownames(hive) <- 1:MAX_ROWS
+
+
+for(x in 1:100){
+  for(i in 1:length(bees)){
+    hive <- bees[[i]]$alter_comb(hive)
+    bees[[i]]$move()
+  }
+  ggsave(paste0("hive_plots/hiveplot_",x,".png"),hive_matrix_to_graph(hive))
+}
+
+#ggsave(paste0("hive_plots/hiveplot_",x+1,".png"),hive_matrix_to_graph(hive))
+```
+
+Okay so now how do I make it work with my grapher?
+
+```{r}
+
+hive_matrix_to_graph <- function(hive_data){
+  hive_df <- as.data.frame(as.table(hive_data))
+  colnames(hive_df) <- c("x","y","contents")
+  hive_df <- hive_df %>% mutate(id = 1:(MAX_COLS*MAX_ROWS)) %>% 
+                         mutate(named_content = ifelse(contents == 0, "Empty",
+                                                       ifelse(contents == 1, "Brood",
+                                                              ifelse(contents == 2, "Pollen",
+                                                                     ifelse(contents == 3, "Honey","???")))))
+  new_hexdat <- full_join(hexdat,
+                          hive_df %>% select(id,named_content),
+                          by="id") %>% mutate(named_content = fct_relevel(as.factor(named_content),types))
+  
+  g <- ggplot(new_hexdat, aes(x, y)) + 
+        geom_polygon(aes(group = id, fill = named_content), colour = "black") +
+        scale_fill_manual(values=hive_colors) +
+        coord_fixed() +
+        theme_classic()
+  
+  return(g)
+}
+
+hive_matrix_to_graph(hive)
+
+```
+

@@ -1,0 +1,51 @@
+---
+title: "Hive Grapher"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+library(forcats)
+library(reshape2)
+```
+
+
+Can I make a beehive graph?
+https://stackoverflow.com/questions/24006361/plot-series-of-filled-hexagons-in-ggplot2
+```{r}
+
+types <- c("Brood", "Pollen", "Honey", "Empty")
+hive_colors <- c("#F3DAB1","#FFF966","#DE620B","#230F11")
+
+hex_size <- 1
+num_x <- 30
+num_y <- 30
+
+# hex_center_xs <- c(rep(seq(from = 0, by = hex_size, length.out = num_x), each = ceiling(num_y/2)),
+#                rep(seq(from = hex_size/2, by = hex_size, length.out = num_x), each = floor(num_y/2)))
+
+hex_center_xs <- rep_len(c(seq(from = 0, by = hex_size, length.out = num_x),
+                   seq(from = hex_size/2, by = hex_size, length.out = num_x)), num_x*num_y)
+
+hex_center_ys <- sort(c(rep(seq(from = 0, by = hex_size*sqrt(3), length.out=ceiling(num_y/2)), num_x),
+            rep(seq(from = hex_size*sqrt(3)/2, by = hex_size*sqrt(3), length.out=floor(num_y/2)), num_x)),decreasing = TRUE)
+
+hex_x = cbind(hex_center_xs + 0, hex_center_xs + 0.5, hex_center_xs + 0.5,
+              hex_center_xs + 0, hex_center_xs - 0.5, hex_center_xs - 0.5) 
+hex_y = cbind(hex_center_ys - 1/(sqrt(3)), hex_center_ys - 1/(2*sqrt(3)), hex_center_ys + 1/(2*sqrt(3)),
+              hex_center_ys + 1/(sqrt(3)), hex_center_ys + 1/(2*sqrt(3)), hex_center_ys - 1/(2*sqrt(3)))
+
+hexdat_x <- melt(cbind(id = 1:length(hex_center_xs), as.data.frame(hex_x)), id.vars = "id", value.name = "x")
+hexdat_y <- melt(cbind(id = 1:length(hex_center_ys), as.data.frame(hex_y)), id.vars = "id", value.name = "y")
+
+hexdat <- full_join(hexdat_y, hexdat_x) %>% group_by(id) %>% mutate(contents = sample(types, 1)) %>% ungroup %>%
+                                            mutate(contents = fct_relevel(as.factor(contents),types))
+
+ggplot(hexdat, aes(x, y)) + 
+  geom_polygon(aes(group = id, fill = contents), colour = "black") +
+  #geom_label(aes(label = id), position=position_jitter(width=0.1,height=0.1)) +
+  scale_fill_manual(values=hive_colors) +
+  coord_fixed() +
+  theme_classic()
+```
+
