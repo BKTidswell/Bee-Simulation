@@ -3,17 +3,190 @@ title: "Full Bee Sim"
 output: html_notebook
 ---
 
-This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
-
-Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*. 
 
 ```{r}
-plot(cars)
+library(tidyverse)
+library(forcats)
+library(reshape2)
+library(R6)
 ```
 
-Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Cmd+Option+I*.
+Defien variables
+```{r}
+BROOD <- 1
+POLLEN <- 2
+HONEY <- 3 
+EMPTY <- 0
+```
 
-When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Cmd+Shift+K* to preview the HTML file). 
 
-The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
+Define Starting Honeycomb
+```{r}
+MAX_ROWS <- 30
+MAX_COLS <- 30
 
+hive <- matrix(EMPTY,MAX_ROWS,MAX_COLS)
+```
+
+Makes the beehive graph framework
+https://stackoverflow.com/questions/24006361/plot-series-of-filled-hexagons-in-ggplot2
+```{r}
+
+types <- c("Brood", "Pollen", "Honey", "Empty")
+hive_colors <- c("#F3DAB1","#FFF966","#DE620B","#230F11")
+
+hex_size <- 1
+
+hex_center_xs <- rep_len(c(seq(from = 0, by = hex_size, length.out = MAX_ROWS),
+                   seq(from = hex_size/2, by = hex_size, length.out = MAX_ROWS)), MAX_ROWS*MAX_COLS)
+
+hex_center_ys <- sort(c(rep(seq(from = 0, by = hex_size*sqrt(3), length.out=ceiling(MAX_COLS/2)), MAX_ROWS),
+            rep(seq(from = hex_size*sqrt(3)/2, by = hex_size*sqrt(3), length.out=floor(MAX_COLS/2)), MAX_ROWS)),decreasing = TRUE)
+
+hex_x = cbind(hex_center_xs + 0, hex_center_xs + 0.5, hex_center_xs + 0.5,
+              hex_center_xs + 0, hex_center_xs - 0.5, hex_center_xs - 0.5) 
+hex_y = cbind(hex_center_ys - 1/(sqrt(3)), hex_center_ys - 1/(2*sqrt(3)), hex_center_ys + 1/(2*sqrt(3)),
+              hex_center_ys + 1/(sqrt(3)), hex_center_ys + 1/(2*sqrt(3)), hex_center_ys - 1/(2*sqrt(3)))
+
+hexdat_x <- melt(cbind(id = 1:length(hex_center_xs), as.data.frame(hex_x)), id.vars = "id", value.name = "x")
+hexdat_y <- melt(cbind(id = 1:length(hex_center_ys), as.data.frame(hex_y)), id.vars = "id", value.name = "y")
+
+hexdat <- full_join(hexdat_y, hexdat_x)
+```
+
+This takes a given hive and turns it into a graph
+
+```{r}
+
+hive_matrix_to_graph <- function(hive_data){
+  hive_df <- as.data.frame(as.table(hive_data))
+  colnames(hive_df) <- c("x","y","contents")
+  hive_df <- hive_df %>% mutate(id = 1:(MAX_COLS*MAX_ROWS)) %>% 
+                         mutate(named_content = ifelse(contents == 0, "Empty",
+                                                       ifelse(contents == 1, "Brood",
+                                                              ifelse(contents == 2, "Pollen",
+                                                                     ifelse(contents == 3, "Honey","???")))))
+  new_hexdat <- full_join(hexdat,
+                          hive_df %>% select(id,named_content),
+                          by="id") %>% mutate(named_content = fct_relevel(as.factor(named_content),types))
+  
+  g <- ggplot(new_hexdat, aes(x, y)) + 
+        geom_polygon(aes(group = id, fill = named_content), colour = "black") +
+        scale_fill_manual(values=hive_colors) +
+        coord_fixed() +
+        theme_classic()
+  
+  return(g)
+}
+```
+
+Moving through hexagons (https://www.redblobgames.com/grids/hexagons/)
+If we store the hexagon values in a 2D grid we need to know which "squares" are actually next to each other on a hexagonal grid
+
+On a square grid we can move from [X,Y] to [X+1,Y], [X-1,Y], [X,Y+1], and [X,Y-1], if we remove diagonals
+
+On a hexagonal grid (using what they call “odd-r” horizontal layout) we can move from [X,Y] to:
+    [X-1,Y-1], [X-1,Y], [X-1,Y+1], [X,Y+1], [X+1,Y], [X,Y-1]
+    
+But that's *just* for the odd rows (1 indexed). For the even rows it's: 
+    [X,Y-1], [X-1,Y], [X,Y+1], [X+1,Y+1], [X+1,Y], [X+1,Y-1]
+
+```{r}
+
+hex_move <- function(cur_X,cur_Y,prev_X,prev_Y){
+  even_row_legal_hexes <- tibble(
+                                x = c(cur_X,cur_X-1,cur_X,cur_X+1,cur_X+1,cur_X+1),
+                                y = c(cur_Y-1,cur_Y,cur_Y+1,cur_Y+1,cur_Y,cur_Y-1)
+                               )
+  odd_row_legal_hexes <- tibble(
+                                x = c(cur_X-1,cur_X-1,cur_X-1,cur_X,cur_X+1,cur_X),
+                                y = c(cur_Y-1,cur_Y,cur_Y+1,cur_Y+1,cur_Y,cur_Y-1)
+                               )
+  
+  #check if our row is even or odd
+  if(cur_Y %% 2 == 0){
+    legal_hexes <- even_row_legal_hexes
+  }
+  else{
+    legal_hexes <- odd_row_legal_hexes
+  }
+  
+  #Makes sure it can't move back to where it was, or to the last square it was on
+  #Also R is 1 indexed, so it can't be 0 or less
+  legal_hexes <- legal_hexes %>% filter(x > 0) %>% filter(y > 0) %>%
+                                 filter(x <= MAX_ROWS) %>% filter(y <= MAX_COLS) %>%
+                                 filter(!(x == prev_X & y == prev_Y))
+  
+  next_hex <- legal_hexes %>% sample_n(1)
+  
+  return(c(next_hex$x,next_hex$y))
+}
+
+hex_move(2,2,3,3)
+
+```
+
+Defines what a bee is 
+```{r}
+Bee <- R6Class("Bee",
+               public = list(
+                 cur_X = NULL,
+                 cur_Y = NULL,
+                 prev_X = -1,
+                 prev_Y = -1,
+                 carry = NULL,
+                 initialize = function(cur_X = NA, cur_Y = NA, carry = NA) {
+                    self$cur_X <- cur_X
+                    self$cur_Y <- cur_Y
+                    self$carry <- carry
+                  },
+                 move = function(){
+                   next_hex <- hex_move(self$cur_X,self$cur_Y,self$prev_X,self$prev_Y)
+                   
+                   self$prev_X <- self$cur_X
+                   self$prev_Y <- self$cur_Y
+                   
+                   self$cur_X <- next_hex[1]
+                   self$cur_Y <- next_hex[2]
+                   
+                   #print(c(self$cur_X,self$cur_Y))
+                 },
+                 alter_comb = function(current_hive){
+                   current_hive[self$cur_X,self$cur_Y] <- self$carry
+                   return(current_hive)
+                 },
+                 buzz = function(){
+                   cat(paste0("Hello, I am a bee carrying ", self$carry, " at X = ", self$cur_X, " and Y = ", self$cur_Y, ".\n"))
+                 }
+               )
+             )
+```
+
+Runs the simulation with the bees
+
+```{r}
+can_carry <- c(HONEY,POLLEN,BROOD)
+
+n_bees = 20
+
+bees <- list()
+
+for(n in 1:n_bees){
+  bees <- append(bees, list(Bee$new(sample(1:MAX_ROWS, 1), sample(1:MAX_COLS, 1), sample(can_carry, 1))))
+}
+
+hive <- matrix(EMPTY,MAX_ROWS,MAX_COLS)
+
+colnames(hive) <- 1:MAX_COLS
+rownames(hive) <- 1:MAX_ROWS
+
+
+for(x in 1:100){
+  for(i in 1:length(bees)){
+    hive <- bees[[i]]$alter_comb(hive)
+    bees[[i]]$move()
+  }
+  ggsave(paste0("hive_plots/hiveplot_",x,".png"),hive_matrix_to_graph(hive))
+}
+
+```

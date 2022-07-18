@@ -18,8 +18,8 @@ types <- c("Brood", "Pollen", "Honey", "Empty")
 hive_colors <- c("#F3DAB1","#FFF966","#DE620B","#230F11")
 
 hex_size <- 1
-num_x <- 30
-num_y <- 30
+num_x <- 45
+num_y <- 75
 
 # hex_center_xs <- c(rep(seq(from = 0, by = hex_size, length.out = num_x), each = ceiling(num_y/2)),
 #                rep(seq(from = hex_size/2, by = hex_size, length.out = num_x), each = floor(num_y/2)))

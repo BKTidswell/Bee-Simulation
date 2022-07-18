@@ -1768,31 +1768,345 @@ pre code {
 
 
 <!-- rnb-text-begin -->
-<p>This is an <a href="http://rmarkdown.rstudio.com">R Markdown</a>
-Notebook. When you execute code within the notebook, the results appear
-beneath the code.</p>
-<p>Try executing this chunk by clicking the <em>Run</em> button within
-the chunk or by placing your cursor inside it and pressing
-<em>Cmd+Shift+Enter</em>.</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxucGxvdChjYXJzKVxuYGBgIn0= -->
-<pre class="r"><code>plot(cars)</code></pre>
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubGlicmFyeSh0aWR5dmVyc2UpXG5gYGAifQ== -->
+<pre class="r"><code>library(tidyverse)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiUmVnaXN0ZXJlZCBTMyBtZXRob2RzIG92ZXJ3cml0dGVuIGJ5ICdkYnBseXInOlxuICBtZXRob2QgICAgICAgICBmcm9tXG4gIHByaW50LnRibF9sYXp5ICAgICBcbiAgcHJpbnQudGJsX3NxbCAgICAgIFxu4pSA4pSAIEF0dGFjaGluZyBwYWNrYWdlcyDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIAgdGlkeXZlcnNlIDEuMy4xIOKUgOKUgFxu4pyUIGdncGxvdDIgMy4zLjYgICAgIOKclCBwdXJyciAgIDAuMy40XG7inJQgdGliYmxlICAzLjEuNyAgICAg4pyUIGRwbHlyICAgMS4wLjlcbuKclCB0aWR5ciAgIDEuMi4wICAgICDinJQgc3RyaW5nciAxLjQuMFxu4pyUIHJlYWRyICAgMi4xLjIgICAgIOKclCBmb3JjYXRzIDAuNS4xXG7ilIDilIAgQ29uZmxpY3RzIOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgCB0aWR5dmVyc2VfY29uZmxpY3RzKCkg4pSA4pSAXG7inJYgZHBseXI6OmZpbHRlcigpIG1hc2tzIHN0YXRzOjpmaWx0ZXIoKVxu4pyWIGRwbHlyOjpsYWcoKSAgICBtYXNrcyBzdGF0czo6bGFnKClcbiJ9 -->
+<pre><code>Registered S3 methods overwritten by &#39;dbplyr&#39;:
+  method         from
+  print.tbl_lazy     
+  print.tbl_sql      
+── Attaching packages ────────────────────────────────────────────────────────────────── tidyverse 1.3.1 ──
+✔ ggplot2 3.3.6     ✔ purrr   0.3.4
+✔ tibble  3.1.7     ✔ dplyr   1.0.9
+✔ tidyr   1.2.0     ✔ stringr 1.4.0
+✔ readr   2.1.2     ✔ forcats 0.5.1
+── Conflicts ───────────────────────────────────────────────────────────────────── tidyverse_conflicts() ──
+✖ dplyr::filter() masks stats::filter()
+✖ dplyr::lag()    masks stats::lag()</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubGlicmFyeShmb3JjYXRzKVxubGlicmFyeShyZXNoYXBlMilcbmBgYCJ9 -->
+<pre class="r"><code>library(forcats)
+library(reshape2)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiXG5BdHRhY2hpbmcgcGFja2FnZTog4oCYcmVzaGFwZTLigJlcblxuVGhlIGZvbGxvd2luZyBvYmplY3QgaXMgbWFza2VkIGZyb20g4oCYcGFja2FnZTp0aWR5cuKAmTpcblxuICAgIHNtaXRoc1xuIn0= -->
+<pre><code>
+Attaching package: ‘reshape2’
+
+The following object is masked from ‘package:tidyr’:
+
+    smiths</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubGlicmFyeShSNilcbmBgYCJ9 -->
+<pre class="r"><code>library(R6)</code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
-<p>Add a new chunk by clicking the <em>Insert Chunk</em> button on the
-toolbar or by pressing <em>Cmd+Option+I</em>.</p>
-<p>When you save the notebook, an HTML file containing the code and
-output will be saved alongside it (click the <em>Preview</em> button or
-press <em>Cmd+Shift+K</em> to preview the HTML file).</p>
-<p>The preview shows you a rendered HTML copy of the contents of the
-editor. Consequently, unlike <em>Knit</em>, <em>Preview</em> does not
-run any R code chunks. Instead, the output of the chunk when it was last
-run in the editor is displayed.</p>
+<p>Defien variables</p>
 <!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuQlJPT0QgPC0gMVxuUE9MTEVOIDwtIDJcbkhPTkVZIDwtIDMgXG5FTVBUWSA8LSAwXG5gYGAifQ== -->
+<pre class="r"><code>BROOD &lt;- 1
+POLLEN &lt;- 2
+HONEY &lt;- 3 
+EMPTY &lt;- 0</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<p>Define Starting Honeycomb</p>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuTUFYX1JPV1MgPC0gMzBcbk1BWF9DT0xTIDwtIDMwXG5cbmhpdmUgPC0gbWF0cml4KEVNUFRZLE1BWF9ST1dTLE1BWF9DT0xTKVxuYGBgIn0= -->
+<pre class="r"><code>MAX_ROWS &lt;- 30
+MAX_COLS &lt;- 30
 
-<div id="rmd-source-code">LS0tCnRpdGxlOiAiRnVsbCBCZWUgU2ltIgpvdXRwdXQ6IGh0bWxfbm90ZWJvb2sKLS0tCgpUaGlzIGlzIGFuIFtSIE1hcmtkb3duXShodHRwOi8vcm1hcmtkb3duLnJzdHVkaW8uY29tKSBOb3RlYm9vay4gV2hlbiB5b3UgZXhlY3V0ZSBjb2RlIHdpdGhpbiB0aGUgbm90ZWJvb2ssIHRoZSByZXN1bHRzIGFwcGVhciBiZW5lYXRoIHRoZSBjb2RlLiAKClRyeSBleGVjdXRpbmcgdGhpcyBjaHVuayBieSBjbGlja2luZyB0aGUgKlJ1biogYnV0dG9uIHdpdGhpbiB0aGUgY2h1bmsgb3IgYnkgcGxhY2luZyB5b3VyIGN1cnNvciBpbnNpZGUgaXQgYW5kIHByZXNzaW5nICpDbWQrU2hpZnQrRW50ZXIqLiAKCmBgYHtyfQpwbG90KGNhcnMpCmBgYAoKQWRkIGEgbmV3IGNodW5rIGJ5IGNsaWNraW5nIHRoZSAqSW5zZXJ0IENodW5rKiBidXR0b24gb24gdGhlIHRvb2xiYXIgb3IgYnkgcHJlc3NpbmcgKkNtZCtPcHRpb24rSSouCgpXaGVuIHlvdSBzYXZlIHRoZSBub3RlYm9vaywgYW4gSFRNTCBmaWxlIGNvbnRhaW5pbmcgdGhlIGNvZGUgYW5kIG91dHB1dCB3aWxsIGJlIHNhdmVkIGFsb25nc2lkZSBpdCAoY2xpY2sgdGhlICpQcmV2aWV3KiBidXR0b24gb3IgcHJlc3MgKkNtZCtTaGlmdCtLKiB0byBwcmV2aWV3IHRoZSBIVE1MIGZpbGUpLiAKClRoZSBwcmV2aWV3IHNob3dzIHlvdSBhIHJlbmRlcmVkIEhUTUwgY29weSBvZiB0aGUgY29udGVudHMgb2YgdGhlIGVkaXRvci4gQ29uc2VxdWVudGx5LCB1bmxpa2UgKktuaXQqLCAqUHJldmlldyogZG9lcyBub3QgcnVuIGFueSBSIGNvZGUgY2h1bmtzLiBJbnN0ZWFkLCB0aGUgb3V0cHV0IG9mIHRoZSBjaHVuayB3aGVuIGl0IHdhcyBsYXN0IHJ1biBpbiB0aGUgZWRpdG9yIGlzIGRpc3BsYXllZC4KCg==</div>
+hive &lt;- matrix(EMPTY,MAX_ROWS,MAX_COLS)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<p>Makes the beehive graph framework <a href="https://stackoverflow.com/questions/24006361/plot-series-of-filled-hexagons-in-ggplot2" class="uri">https://stackoverflow.com/questions/24006361/plot-series-of-filled-hexagons-in-ggplot2</a></p>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuXG50eXBlcyA8LSBjKFwiQnJvb2RcIiwgXCJQb2xsZW5cIiwgXCJIb25leVwiLCBcIkVtcHR5XCIpXG5oaXZlX2NvbG9ycyA8LSBjKFwiI0YzREFCMVwiLFwiI0ZGRjk2NlwiLFwiI0RFNjIwQlwiLFwiIzIzMEYxMVwiKVxuXG5oZXhfc2l6ZSA8LSAxXG5cbmhleF9jZW50ZXJfeHMgPC0gcmVwX2xlbihjKHNlcShmcm9tID0gMCwgYnkgPSBoZXhfc2l6ZSwgbGVuZ3RoLm91dCA9IE1BWF9ST1dTKSxcbiAgICAgICAgICAgICAgICAgICBzZXEoZnJvbSA9IGhleF9zaXplLzIsIGJ5ID0gaGV4X3NpemUsIGxlbmd0aC5vdXQgPSBNQVhfUk9XUykpLCBNQVhfUk9XUypNQVhfQ09MUylcblxuaGV4X2NlbnRlcl95cyA8LSBzb3J0KGMocmVwKHNlcShmcm9tID0gMCwgYnkgPSBoZXhfc2l6ZSpzcXJ0KDMpLCBsZW5ndGgub3V0PWNlaWxpbmcoTUFYX0NPTFMvMikpLCBNQVhfUk9XUyksXG4gICAgICAgICAgICByZXAoc2VxKGZyb20gPSBoZXhfc2l6ZSpzcXJ0KDMpLzIsIGJ5ID0gaGV4X3NpemUqc3FydCgzKSwgbGVuZ3RoLm91dD1mbG9vcihNQVhfQ09MUy8yKSksIE1BWF9ST1dTKSksZGVjcmVhc2luZyA9IFRSVUUpXG5cbmhleF94ID0gY2JpbmQoaGV4X2NlbnRlcl94cyArIDAsIGhleF9jZW50ZXJfeHMgKyAwLjUsIGhleF9jZW50ZXJfeHMgKyAwLjUsXG4gICAgICAgICAgICAgIGhleF9jZW50ZXJfeHMgKyAwLCBoZXhfY2VudGVyX3hzIC0gMC41LCBoZXhfY2VudGVyX3hzIC0gMC41KSBcbmhleF95ID0gY2JpbmQoaGV4X2NlbnRlcl95cyAtIDEvKHNxcnQoMykpLCBoZXhfY2VudGVyX3lzIC0gMS8oMipzcXJ0KDMpKSwgaGV4X2NlbnRlcl95cyArIDEvKDIqc3FydCgzKSksXG4gICAgICAgICAgICAgIGhleF9jZW50ZXJfeXMgKyAxLyhzcXJ0KDMpKSwgaGV4X2NlbnRlcl95cyArIDEvKDIqc3FydCgzKSksIGhleF9jZW50ZXJfeXMgLSAxLygyKnNxcnQoMykpKVxuXG5oZXhkYXRfeCA8LSBtZWx0KGNiaW5kKGlkID0gMTpsZW5ndGgoaGV4X2NlbnRlcl94cyksIGFzLmRhdGEuZnJhbWUoaGV4X3gpKSwgaWQudmFycyA9IFwiaWRcIiwgdmFsdWUubmFtZSA9IFwieFwiKVxuaGV4ZGF0X3kgPC0gbWVsdChjYmluZChpZCA9IDE6bGVuZ3RoKGhleF9jZW50ZXJfeXMpLCBhcy5kYXRhLmZyYW1lKGhleF95KSksIGlkLnZhcnMgPSBcImlkXCIsIHZhbHVlLm5hbWUgPSBcInlcIilcblxuaGV4ZGF0IDwtIGZ1bGxfam9pbihoZXhkYXRfeSwgaGV4ZGF0X3gpXG5gYGAifQ== -->
+<pre class="r"><code>
+types &lt;- c(&quot;Brood&quot;, &quot;Pollen&quot;, &quot;Honey&quot;, &quot;Empty&quot;)
+hive_colors &lt;- c(&quot;#F3DAB1&quot;,&quot;#FFF966&quot;,&quot;#DE620B&quot;,&quot;#230F11&quot;)
+
+hex_size &lt;- 1
+
+hex_center_xs &lt;- rep_len(c(seq(from = 0, by = hex_size, length.out = MAX_ROWS),
+                   seq(from = hex_size/2, by = hex_size, length.out = MAX_ROWS)), MAX_ROWS*MAX_COLS)
+
+hex_center_ys &lt;- sort(c(rep(seq(from = 0, by = hex_size*sqrt(3), length.out=ceiling(MAX_COLS/2)), MAX_ROWS),
+            rep(seq(from = hex_size*sqrt(3)/2, by = hex_size*sqrt(3), length.out=floor(MAX_COLS/2)), MAX_ROWS)),decreasing = TRUE)
+
+hex_x = cbind(hex_center_xs + 0, hex_center_xs + 0.5, hex_center_xs + 0.5,
+              hex_center_xs + 0, hex_center_xs - 0.5, hex_center_xs - 0.5) 
+hex_y = cbind(hex_center_ys - 1/(sqrt(3)), hex_center_ys - 1/(2*sqrt(3)), hex_center_ys + 1/(2*sqrt(3)),
+              hex_center_ys + 1/(sqrt(3)), hex_center_ys + 1/(2*sqrt(3)), hex_center_ys - 1/(2*sqrt(3)))
+
+hexdat_x &lt;- melt(cbind(id = 1:length(hex_center_xs), as.data.frame(hex_x)), id.vars = &quot;id&quot;, value.name = &quot;x&quot;)
+hexdat_y &lt;- melt(cbind(id = 1:length(hex_center_ys), as.data.frame(hex_y)), id.vars = &quot;id&quot;, value.name = &quot;y&quot;)
+
+hexdat &lt;- full_join(hexdat_y, hexdat_x)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiSm9pbmluZywgYnkgPSBjKFwiaWRcIiwgXCJ2YXJpYWJsZVwiKVxuIn0= -->
+<pre><code>Joining, by = c(&quot;id&quot;, &quot;variable&quot;)</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<p>This takes a given hive and turns it into a graph</p>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuXG5oaXZlX21hdHJpeF90b19ncmFwaCA8LSBmdW5jdGlvbihoaXZlX2RhdGEpe1xuICBoaXZlX2RmIDwtIGFzLmRhdGEuZnJhbWUoYXMudGFibGUoaGl2ZV9kYXRhKSlcbiAgY29sbmFtZXMoaGl2ZV9kZikgPC0gYyhcInhcIixcInlcIixcImNvbnRlbnRzXCIpXG4gIGhpdmVfZGYgPC0gaGl2ZV9kZiAlPiUgbXV0YXRlKGlkID0gMTooTUFYX0NPTFMqTUFYX1JPV1MpKSAlPiUgXG4gICAgICAgICAgICAgICAgICAgICAgICAgbXV0YXRlKG5hbWVkX2NvbnRlbnQgPSBpZmVsc2UoY29udGVudHMgPT0gMCwgXCJFbXB0eVwiLFxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIGlmZWxzZShjb250ZW50cyA9PSAxLCBcIkJyb29kXCIsXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIGlmZWxzZShjb250ZW50cyA9PSAyLCBcIlBvbGxlblwiLFxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgaWZlbHNlKGNvbnRlbnRzID09IDMsIFwiSG9uZXlcIixcIj8/P1wiKSkpKSlcbiAgbmV3X2hleGRhdCA8LSBmdWxsX2pvaW4oaGV4ZGF0LFxuICAgICAgICAgICAgICAgICAgICAgICAgICBoaXZlX2RmICU+JSBzZWxlY3QoaWQsbmFtZWRfY29udGVudCksXG4gICAgICAgICAgICAgICAgICAgICAgICAgIGJ5PVwiaWRcIikgJT4lIG11dGF0ZShuYW1lZF9jb250ZW50ID0gZmN0X3JlbGV2ZWwoYXMuZmFjdG9yKG5hbWVkX2NvbnRlbnQpLHR5cGVzKSlcbiAgXG4gIGcgPC0gZ2dwbG90KG5ld19oZXhkYXQsIGFlcyh4LCB5KSkgKyBcbiAgICAgICAgZ2VvbV9wb2x5Z29uKGFlcyhncm91cCA9IGlkLCBmaWxsID0gbmFtZWRfY29udGVudCksIGNvbG91ciA9IFwiYmxhY2tcIikgK1xuICAgICAgICBzY2FsZV9maWxsX21hbnVhbCh2YWx1ZXM9aGl2ZV9jb2xvcnMpICtcbiAgICAgICAgY29vcmRfZml4ZWQoKSArXG4gICAgICAgIHRoZW1lX2NsYXNzaWMoKVxuICBcbiAgcmV0dXJuKGcpXG59XG5gYGAifQ== -->
+<pre class="r"><code>
+hive_matrix_to_graph &lt;- function(hive_data){
+  hive_df &lt;- as.data.frame(as.table(hive_data))
+  colnames(hive_df) &lt;- c(&quot;x&quot;,&quot;y&quot;,&quot;contents&quot;)
+  hive_df &lt;- hive_df %&gt;% mutate(id = 1:(MAX_COLS*MAX_ROWS)) %&gt;% 
+                         mutate(named_content = ifelse(contents == 0, &quot;Empty&quot;,
+                                                       ifelse(contents == 1, &quot;Brood&quot;,
+                                                              ifelse(contents == 2, &quot;Pollen&quot;,
+                                                                     ifelse(contents == 3, &quot;Honey&quot;,&quot;???&quot;)))))
+  new_hexdat &lt;- full_join(hexdat,
+                          hive_df %&gt;% select(id,named_content),
+                          by=&quot;id&quot;) %&gt;% mutate(named_content = fct_relevel(as.factor(named_content),types))
+  
+  g &lt;- ggplot(new_hexdat, aes(x, y)) + 
+        geom_polygon(aes(group = id, fill = named_content), colour = &quot;black&quot;) +
+        scale_fill_manual(values=hive_colors) +
+        coord_fixed() +
+        theme_classic()
+  
+  return(g)
+}</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<p>Moving through hexagons (<a href="https://www.redblobgames.com/grids/hexagons/" class="uri">https://www.redblobgames.com/grids/hexagons/</a>) If we
+store the hexagon values in a 2D grid we need to know which “squares”
+are actually next to each other on a hexagonal grid</p>
+<p>On a square grid we can move from [X,Y] to [X+1,Y], [X-1,Y], [X,Y+1],
+and [X,Y-1], if we remove diagonals</p>
+<p>On a hexagonal grid (using what they call “odd-r” horizontal layout)
+we can move from [X,Y] to: [X-1,Y-1], [X-1,Y], [X-1,Y+1], [X,Y+1],
+[X+1,Y], [X,Y-1]</p>
+<p>But that’s <em>just</em> for the odd rows (1 indexed). For the even
+rows it’s: [X,Y-1], [X-1,Y], [X,Y+1], [X+1,Y+1], [X+1,Y], [X+1,Y-1]</p>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuXG5oZXhfbW92ZSA8LSBmdW5jdGlvbihjdXJfWCxjdXJfWSxwcmV2X1gscHJldl9ZKXtcbiAgZXZlbl9yb3dfbGVnYWxfaGV4ZXMgPC0gdGliYmxlKFxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICB4ID0gYyhjdXJfWCxjdXJfWC0xLGN1cl9YLGN1cl9YKzEsY3VyX1grMSxjdXJfWCsxKSxcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgeSA9IGMoY3VyX1ktMSxjdXJfWSxjdXJfWSsxLGN1cl9ZKzEsY3VyX1ksY3VyX1ktMSlcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICApXG4gIG9kZF9yb3dfbGVnYWxfaGV4ZXMgPC0gdGliYmxlKFxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICB4ID0gYyhjdXJfWC0xLGN1cl9YLTEsY3VyX1gtMSxjdXJfWCxjdXJfWCsxLGN1cl9YKSxcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgeSA9IGMoY3VyX1ktMSxjdXJfWSxjdXJfWSsxLGN1cl9ZKzEsY3VyX1ksY3VyX1ktMSlcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICApXG4gIFxuICAjY2hlY2sgaWYgb3VyIHJvdyBpcyBldmVuIG9yIG9kZFxuICBpZihjdXJfWSAlJSAyID09IDApe1xuICAgIGxlZ2FsX2hleGVzIDwtIGV2ZW5fcm93X2xlZ2FsX2hleGVzXG4gIH1cbiAgZWxzZXtcbiAgICBsZWdhbF9oZXhlcyA8LSBvZGRfcm93X2xlZ2FsX2hleGVzXG4gIH1cbiAgXG4gICNNYWtlcyBzdXJlIGl0IGNhbid0IG1vdmUgYmFjayB0byB3aGVyZSBpdCB3YXMsIG9yIHRvIHRoZSBsYXN0IHNxdWFyZSBpdCB3YXMgb25cbiAgI0Fsc28gUiBpcyAxIGluZGV4ZWQsIHNvIGl0IGNhbid0IGJlIDAgb3IgbGVzc1xuICBsZWdhbF9oZXhlcyA8LSBsZWdhbF9oZXhlcyAlPiUgZmlsdGVyKHggPiAwKSAlPiUgZmlsdGVyKHkgPiAwKSAlPiVcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIGZpbHRlcih4IDw9IE1BWF9ST1dTKSAlPiUgZmlsdGVyKHkgPD0gTUFYX0NPTFMpICU+JVxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgZmlsdGVyKCEoeCA9PSBwcmV2X1ggJiB5ID09IHByZXZfWSkpXG4gIFxuICBuZXh0X2hleCA8LSBsZWdhbF9oZXhlcyAlPiUgc2FtcGxlX24oMSlcbiAgXG4gIHJldHVybihjKG5leHRfaGV4JHgsbmV4dF9oZXgkeSkpXG59XG5cbmhleF9tb3ZlKDIsMiwzLDMpXG5gYGAifQ== -->
+<pre class="r"><code>
+hex_move &lt;- function(cur_X,cur_Y,prev_X,prev_Y){
+  even_row_legal_hexes &lt;- tibble(
+                                x = c(cur_X,cur_X-1,cur_X,cur_X+1,cur_X+1,cur_X+1),
+                                y = c(cur_Y-1,cur_Y,cur_Y+1,cur_Y+1,cur_Y,cur_Y-1)
+                               )
+  odd_row_legal_hexes &lt;- tibble(
+                                x = c(cur_X-1,cur_X-1,cur_X-1,cur_X,cur_X+1,cur_X),
+                                y = c(cur_Y-1,cur_Y,cur_Y+1,cur_Y+1,cur_Y,cur_Y-1)
+                               )
+  
+  #check if our row is even or odd
+  if(cur_Y %% 2 == 0){
+    legal_hexes &lt;- even_row_legal_hexes
+  }
+  else{
+    legal_hexes &lt;- odd_row_legal_hexes
+  }
+  
+  #Makes sure it can&#39;t move back to where it was, or to the last square it was on
+  #Also R is 1 indexed, so it can&#39;t be 0 or less
+  legal_hexes &lt;- legal_hexes %&gt;% filter(x &gt; 0) %&gt;% filter(y &gt; 0) %&gt;%
+                                 filter(x &lt;= MAX_ROWS) %&gt;% filter(y &lt;= MAX_COLS) %&gt;%
+                                 filter(!(x == prev_X &amp; y == prev_Y))
+  
+  next_hex &lt;- legal_hexes %&gt;% sample_n(1)
+  
+  return(c(next_hex$x,next_hex$y))
+}
+
+hex_move(2,2,3,3)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiWzFdIDMgMlxuIn0= -->
+<pre><code>[1] 3 2</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<p>Defines what a bee is</p>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuQmVlIDwtIFI2Q2xhc3MoXCJCZWVcIixcbiAgICAgICAgICAgICAgIHB1YmxpYyA9IGxpc3QoXG4gICAgICAgICAgICAgICAgIGN1cl9YID0gTlVMTCxcbiAgICAgICAgICAgICAgICAgY3VyX1kgPSBOVUxMLFxuICAgICAgICAgICAgICAgICBwcmV2X1ggPSAtMSxcbiAgICAgICAgICAgICAgICAgcHJldl9ZID0gLTEsXG4gICAgICAgICAgICAgICAgIGNhcnJ5ID0gTlVMTCxcbiAgICAgICAgICAgICAgICAgaW5pdGlhbGl6ZSA9IGZ1bmN0aW9uKGN1cl9YID0gTkEsIGN1cl9ZID0gTkEsIGNhcnJ5ID0gTkEpIHtcbiAgICAgICAgICAgICAgICAgICAgc2VsZiRjdXJfWCA8LSBjdXJfWFxuICAgICAgICAgICAgICAgICAgICBzZWxmJGN1cl9ZIDwtIGN1cl9ZXG4gICAgICAgICAgICAgICAgICAgIHNlbGYkY2FycnkgPC0gY2FycnlcbiAgICAgICAgICAgICAgICAgIH0sXG4gICAgICAgICAgICAgICAgIG1vdmUgPSBmdW5jdGlvbigpe1xuICAgICAgICAgICAgICAgICAgIG5leHRfaGV4IDwtIGhleF9tb3ZlKHNlbGYkY3VyX1gsc2VsZiRjdXJfWSxzZWxmJHByZXZfWCxzZWxmJHByZXZfWSlcbiAgICAgICAgICAgICAgICAgICBcbiAgICAgICAgICAgICAgICAgICBzZWxmJHByZXZfWCA8LSBzZWxmJGN1cl9YXG4gICAgICAgICAgICAgICAgICAgc2VsZiRwcmV2X1kgPC0gc2VsZiRjdXJfWVxuICAgICAgICAgICAgICAgICAgIFxuICAgICAgICAgICAgICAgICAgIHNlbGYkY3VyX1ggPC0gbmV4dF9oZXhbMV1cbiAgICAgICAgICAgICAgICAgICBzZWxmJGN1cl9ZIDwtIG5leHRfaGV4WzJdXG4gICAgICAgICAgICAgICAgICAgXG4gICAgICAgICAgICAgICAgICAgI3ByaW50KGMoc2VsZiRjdXJfWCxzZWxmJGN1cl9ZKSlcbiAgICAgICAgICAgICAgICAgfSxcbiAgICAgICAgICAgICAgICAgYWx0ZXJfY29tYiA9IGZ1bmN0aW9uKGN1cnJlbnRfaGl2ZSl7XG4gICAgICAgICAgICAgICAgICAgY3VycmVudF9oaXZlW3NlbGYkY3VyX1gsc2VsZiRjdXJfWV0gPC0gc2VsZiRjYXJyeVxuICAgICAgICAgICAgICAgICAgIHJldHVybihjdXJyZW50X2hpdmUpXG4gICAgICAgICAgICAgICAgIH0sXG4gICAgICAgICAgICAgICAgIGJ1enogPSBmdW5jdGlvbigpe1xuICAgICAgICAgICAgICAgICAgIGNhdChwYXN0ZTAoXCJIZWxsbywgSSBhbSBhIGJlZSBjYXJyeWluZyBcIiwgc2VsZiRjYXJyeSwgXCIgYXQgWCA9IFwiLCBzZWxmJGN1cl9YLCBcIiBhbmQgWSA9IFwiLCBzZWxmJGN1cl9ZLCBcIi5cXG5cIikpXG4gICAgICAgICAgICAgICAgIH1cbiAgICAgICAgICAgICAgIClcbiAgICAgICAgICAgICApXG5gYGAifQ== -->
+<pre class="r"><code>Bee &lt;- R6Class(&quot;Bee&quot;,
+               public = list(
+                 cur_X = NULL,
+                 cur_Y = NULL,
+                 prev_X = -1,
+                 prev_Y = -1,
+                 carry = NULL,
+                 initialize = function(cur_X = NA, cur_Y = NA, carry = NA) {
+                    self$cur_X &lt;- cur_X
+                    self$cur_Y &lt;- cur_Y
+                    self$carry &lt;- carry
+                  },
+                 move = function(){
+                   next_hex &lt;- hex_move(self$cur_X,self$cur_Y,self$prev_X,self$prev_Y)
+                   
+                   self$prev_X &lt;- self$cur_X
+                   self$prev_Y &lt;- self$cur_Y
+                   
+                   self$cur_X &lt;- next_hex[1]
+                   self$cur_Y &lt;- next_hex[2]
+                   
+                   #print(c(self$cur_X,self$cur_Y))
+                 },
+                 alter_comb = function(current_hive){
+                   current_hive[self$cur_X,self$cur_Y] &lt;- self$carry
+                   return(current_hive)
+                 },
+                 buzz = function(){
+                   cat(paste0(&quot;Hello, I am a bee carrying &quot;, self$carry, &quot; at X = &quot;, self$cur_X, &quot; and Y = &quot;, self$cur_Y, &quot;.\n&quot;))
+                 }
+               )
+             )</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<p>Runs the simulation with the bees</p>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuY2FuX2NhcnJ5IDwtIGMoSE9ORVksUE9MTEVOLEJST09EKVxuXG5uX2JlZXMgPSAyMFxuXG5iZWVzIDwtIGxpc3QoKVxuXG5mb3IobiBpbiAxOm5fYmVlcyl7XG4gIGJlZXMgPC0gYXBwZW5kKGJlZXMsIGxpc3QoQmVlJG5ldyhzYW1wbGUoMTpNQVhfUk9XUywgMSksIHNhbXBsZSgxOk1BWF9DT0xTLCAxKSwgc2FtcGxlKGNhbl9jYXJyeSwgMSkpKSlcbn1cblxuaGl2ZSA8LSBtYXRyaXgoRU1QVFksTUFYX1JPV1MsTUFYX0NPTFMpXG5cbmNvbG5hbWVzKGhpdmUpIDwtIDE6TUFYX0NPTFNcbnJvd25hbWVzKGhpdmUpIDwtIDE6TUFYX1JPV1NcblxuXG5mb3IoeCBpbiAxOjEwMCl7XG4gIGZvcihpIGluIDE6bGVuZ3RoKGJlZXMpKXtcbiAgICBoaXZlIDwtIGJlZXNbW2ldXSRhbHRlcl9jb21iKGhpdmUpXG4gICAgYmVlc1tbaV1dJG1vdmUoKVxuICB9XG4gIGdnc2F2ZShwYXN0ZTAoXCJoaXZlX3Bsb3RzL2hpdmVwbG90X1wiLHgsXCIucG5nXCIpLGhpdmVfbWF0cml4X3RvX2dyYXBoKGhpdmUpKVxufVxuYGBgIn0= -->
+<pre class="r"><code>can_carry &lt;- c(HONEY,POLLEN,BROOD)
+
+n_bees = 20
+
+bees &lt;- list()
+
+for(n in 1:n_bees){
+  bees &lt;- append(bees, list(Bee$new(sample(1:MAX_ROWS, 1), sample(1:MAX_COLS, 1), sample(can_carry, 1))))
+}
+
+hive &lt;- matrix(EMPTY,MAX_ROWS,MAX_COLS)
+
+colnames(hive) &lt;- 1:MAX_COLS
+rownames(hive) &lt;- 1:MAX_ROWS
+
+
+for(x in 1:100){
+  for(i in 1:length(bees)){
+    hive &lt;- bees[[i]]$alter_comb(hive)
+    bees[[i]]$move()
+  }
+  ggsave(paste0(&quot;hive_plots/hiveplot_&quot;,x,&quot;.png&quot;),hive_matrix_to_graph(hive))
+}</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiU2F2aW5nIDcgeCA3IGluIGltYWdlXG5TYXZpbmcgNyB4IDcgaW4gaW1hZ2VcblNhdmluZyA3IHggNyBpbiBpbWFnZVxuU2F2aW5nIDcgeCA3IGluIGltYWdlXG5TYXZpbmcgNyB4IDcgaW4gaW1hZ2VcblNhdmluZyA3IHggNyBpbiBpbWFnZVxuU2F2aW5nIDcgeCA3IGluIGltYWdlXG5TYXZpbmcgNyB4IDcgaW4gaW1hZ2VcblNhdmluZyA3IHggNyBpbiBpbWFnZVxuU2F2aW5nIDcgeCA3IGluIGltYWdlXG5TYXZpbmcgNyB4IDcgaW4gaW1hZ2VcblNhdmluZyA3IHggNyBpbiBpbWFnZVxuU2F2aW5nIDcgeCA3IGluIGltYWdlXG5TYXZpbmcgNyB4IDcgaW4gaW1hZ2VcblNhdmluZyA3IHggNyBpbiBpbWFnZVxuU2F2aW5nIDcgeCA3IGluIGltYWdlXG5TYXZpbmcgNyB4IDcgaW4gaW1hZ2VcblNhdmluZyA3IHggNyBpbiBpbWFnZVxuU2F2aW5nIDcgeCA3IGluIGltYWdlXG5TYXZpbmcgNyB4IDcgaW4gaW1hZ2VcblNhdmluZyA3IHggNyBpbiBpbWFnZVxuU2F2aW5nIDcgeCA3IGluIGltYWdlXG5TYXZpbmcgNyB4IDcgaW4gaW1hZ2VcblNhdmluZyA3IHggNyBpbiBpbWFnZVxuU2F2aW5nIDcgeCA3IGluIGltYWdlXG5TYXZpbmcgNyB4IDcgaW4gaW1hZ2VcblNhdmluZyA3IHggNyBpbiBpbWFnZVxuU2F2aW5nIDcgeCA3IGluIGltYWdlXG5TYXZpbmcgNyB4IDcgaW4gaW1hZ2VcblNhdmluZyA3IHggNyBpbiBpbWFnZVxuU2F2aW5nIDcgeCA3IGluIGltYWdlXG5TYXZpbmcgNyB4IDcgaW4gaW1hZ2VcblNhdmluZyA3IHggNyBpbiBpbWFnZVxuU2F2aW5nIDcgeCA3IGluIGltYWdlXG5TYXZpbmcgNyB4IDcgaW4gaW1hZ2VcblNhdmluZyA3IHggNyBpbiBpbWFnZVxuU2F2aW5nIDcgeCA3IGluIGltYWdlXG5TYXZpbmcgNyB4IDcgaW4gaW1hZ2VcblNhdmluZyA3IHggNyBpbiBpbWFnZVxuU2F2aW5nIDcgeCA3IGluIGltYWdlXG5TYXZpbmcgNyB4IDcgaW4gaW1hZ2VcblNhdmluZyA3IHggNyBpbiBpbWFnZVxuU2F2aW5nIDcgeCA3IGluIGltYWdlXG5TYXZpbmcgNyB4IDcgaW4gaW1hZ2VcblNhdmluZyA3IHggNyBpbiBpbWFnZVxuU2F2aW5nIDcgeCA3IGluIGltYWdlXG5TYXZpbmcgNyB4IDcgaW4gaW1hZ2VcblNhdmluZyA3IHggNyBpbiBpbWFnZVxuU2F2aW5nIDcgeCA3IGluIGltYWdlXG5TYXZpbmcgNyB4IDcgaW4gaW1hZ2VcblNhdmluZyA3IHggNyBpbiBpbWFnZVxuU2F2aW5nIDcgeCA3IGluIGltYWdlXG5TYXZpbmcgNyB4IDcgaW4gaW1hZ2VcblNhdmluZyA3IHggNyBpbiBpbWFnZVxuU2F2aW5nIDcgeCA3IGluIGltYWdlXG5TYXZpbmcgNyB4IDcgaW4gaW1hZ2VcblNhdmluZyA3IHggNyBpbiBpbWFnZVxuU2F2aW5nIDcgeCA3IGluIGltYWdlXG5TYXZpbmcgNyB4IDcgaW4gaW1hZ2VcblNhdmluZyA3IHggNyBpbiBpbWFnZVxuU2F2aW5nIDcgeCA3IGluIGltYWdlXG5TYXZpbmcgNyB4IDcgaW4gaW1hZ2VcblNhdmluZyA3IHggNyBpbiBpbWFnZVxuU2F2aW5nIDcgeCA3IGluIGltYWdlXG5TYXZpbmcgNyB4IDcgaW4gaW1hZ2VcblNhdmluZyA3IHggNyBpbiBpbWFnZVxuU2F2aW5nIDcgeCA3IGluIGltYWdlXG5TYXZpbmcgNyB4IDcgaW4gaW1hZ2VcblNhdmluZyA3IHggNyBpbiBpbWFnZVxuU2F2aW5nIDcgeCA3IGluIGltYWdlXG5TYXZpbmcgNyB4IDcgaW4gaW1hZ2VcblNhdmluZyA3IHggNyBpbiBpbWFnZVxuU2F2aW5nIDcgeCA3IGluIGltYWdlXG5TYXZpbmcgNyB4IDcgaW4gaW1hZ2VcblNhdmluZyA3IHggNyBpbiBpbWFnZVxuU2F2aW5nIDcgeCA3IGluIGltYWdlXG5TYXZpbmcgNyB4IDcgaW4gaW1hZ2VcblNhdmluZyA3IHggNyBpbiBpbWFnZVxuU2F2aW5nIDcgeCA3IGluIGltYWdlXG5TYXZpbmcgNyB4IDcgaW4gaW1hZ2VcblNhdmluZyA3IHggNyBpbiBpbWFnZVxuU2F2aW5nIDcgeCA3IGluIGltYWdlXG5TYXZpbmcgNyB4IDcgaW4gaW1hZ2VcblNhdmluZyA3IHggNyBpbiBpbWFnZVxuU2F2aW5nIDcgeCA3IGluIGltYWdlXG5TYXZpbmcgNyB4IDcgaW4gaW1hZ2VcblNhdmluZyA3IHggNyBpbiBpbWFnZVxuU2F2aW5nIDcgeCA3IGluIGltYWdlXG5TYXZpbmcgNyB4IDcgaW4gaW1hZ2VcblNhdmluZyA3IHggNyBpbiBpbWFnZVxuU2F2aW5nIDcgeCA3IGluIGltYWdlXG5TYXZpbmcgNyB4IDcgaW4gaW1hZ2VcblNhdmluZyA3IHggNyBpbiBpbWFnZVxuU2F2aW5nIDcgeCA3IGluIGltYWdlXG5TYXZpbmcgNyB4IDcgaW4gaW1hZ2VcblNhdmluZyA3IHggNyBpbiBpbWFnZVxuU2F2aW5nIDcgeCA3IGluIGltYWdlXG5TYXZpbmcgNyB4IDcgaW4gaW1hZ2VcblNhdmluZyA3IHggNyBpbiBpbWFnZVxuU2F2aW5nIDcgeCA3IGluIGltYWdlXG4ifQ== -->
+<pre><code>Saving 7 x 7 in image
+Saving 7 x 7 in image
+Saving 7 x 7 in image
+Saving 7 x 7 in image
+Saving 7 x 7 in image
+Saving 7 x 7 in image
+Saving 7 x 7 in image
+Saving 7 x 7 in image
+Saving 7 x 7 in image
+Saving 7 x 7 in image
+Saving 7 x 7 in image
+Saving 7 x 7 in image
+Saving 7 x 7 in image
+Saving 7 x 7 in image
+Saving 7 x 7 in image
+Saving 7 x 7 in image
+Saving 7 x 7 in image
+Saving 7 x 7 in image
+Saving 7 x 7 in image
+Saving 7 x 7 in image
+Saving 7 x 7 in image
+Saving 7 x 7 in image
+Saving 7 x 7 in image
+Saving 7 x 7 in image
+Saving 7 x 7 in image
+Saving 7 x 7 in image
+Saving 7 x 7 in image
+Saving 7 x 7 in image
+Saving 7 x 7 in image
+Saving 7 x 7 in image
+Saving 7 x 7 in image
+Saving 7 x 7 in image
+Saving 7 x 7 in image
+Saving 7 x 7 in image
+Saving 7 x 7 in image
+Saving 7 x 7 in image
+Saving 7 x 7 in image
+Saving 7 x 7 in image
+Saving 7 x 7 in image
+Saving 7 x 7 in image
+Saving 7 x 7 in image
+Saving 7 x 7 in image
+Saving 7 x 7 in image
+Saving 7 x 7 in image
+Saving 7 x 7 in image
+Saving 7 x 7 in image
+Saving 7 x 7 in image
+Saving 7 x 7 in image
+Saving 7 x 7 in image
+Saving 7 x 7 in image
+Saving 7 x 7 in image
+Saving 7 x 7 in image
+Saving 7 x 7 in image
+Saving 7 x 7 in image
+Saving 7 x 7 in image
+Saving 7 x 7 in image
+Saving 7 x 7 in image
+Saving 7 x 7 in image
+Saving 7 x 7 in image
+Saving 7 x 7 in image
+Saving 7 x 7 in image
+Saving 7 x 7 in image
+Saving 7 x 7 in image
+Saving 7 x 7 in image
+Saving 7 x 7 in image
+Saving 7 x 7 in image
+Saving 7 x 7 in image
+Saving 7 x 7 in image
+Saving 7 x 7 in image
+Saving 7 x 7 in image
+Saving 7 x 7 in image
+Saving 7 x 7 in image
+Saving 7 x 7 in image
+Saving 7 x 7 in image
+Saving 7 x 7 in image
+Saving 7 x 7 in image
+Saving 7 x 7 in image
+Saving 7 x 7 in image
+Saving 7 x 7 in image
+Saving 7 x 7 in image
+Saving 7 x 7 in image
+Saving 7 x 7 in image
+Saving 7 x 7 in image
+Saving 7 x 7 in image
+Saving 7 x 7 in image
+Saving 7 x 7 in image
+Saving 7 x 7 in image
+Saving 7 x 7 in image
+Saving 7 x 7 in image
+Saving 7 x 7 in image
+Saving 7 x 7 in image
+Saving 7 x 7 in image
+Saving 7 x 7 in image
+Saving 7 x 7 in image
+Saving 7 x 7 in image
+Saving 7 x 7 in image
+Saving 7 x 7 in image
+Saving 7 x 7 in image
+Saving 7 x 7 in image
+Saving 7 x 7 in image</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-chunk-end -->
+
+<div id="rmd-source-code">LS0tCnRpdGxlOiAiRnVsbCBCZWUgU2ltIgpvdXRwdXQ6IGh0bWxfbm90ZWJvb2sKLS0tCgoKYGBge3J9CmxpYnJhcnkodGlkeXZlcnNlKQpsaWJyYXJ5KGZvcmNhdHMpCmxpYnJhcnkocmVzaGFwZTIpCmxpYnJhcnkoUjYpCmBgYAoKRGVmaWVuIHZhcmlhYmxlcwpgYGB7cn0KQlJPT0QgPC0gMQpQT0xMRU4gPC0gMgpIT05FWSA8LSAzIApFTVBUWSA8LSAwCmBgYAoKCkRlZmluZSBTdGFydGluZyBIb25leWNvbWIKYGBge3J9Ck1BWF9ST1dTIDwtIDMwCk1BWF9DT0xTIDwtIDMwCgpoaXZlIDwtIG1hdHJpeChFTVBUWSxNQVhfUk9XUyxNQVhfQ09MUykKYGBgCgpNYWtlcyB0aGUgYmVlaGl2ZSBncmFwaCBmcmFtZXdvcmsKaHR0cHM6Ly9zdGFja292ZXJmbG93LmNvbS9xdWVzdGlvbnMvMjQwMDYzNjEvcGxvdC1zZXJpZXMtb2YtZmlsbGVkLWhleGFnb25zLWluLWdncGxvdDIKYGBge3J9Cgp0eXBlcyA8LSBjKCJCcm9vZCIsICJQb2xsZW4iLCAiSG9uZXkiLCAiRW1wdHkiKQpoaXZlX2NvbG9ycyA8LSBjKCIjRjNEQUIxIiwiI0ZGRjk2NiIsIiNERTYyMEIiLCIjMjMwRjExIikKCmhleF9zaXplIDwtIDEKCmhleF9jZW50ZXJfeHMgPC0gcmVwX2xlbihjKHNlcShmcm9tID0gMCwgYnkgPSBoZXhfc2l6ZSwgbGVuZ3RoLm91dCA9IE1BWF9ST1dTKSwKICAgICAgICAgICAgICAgICAgIHNlcShmcm9tID0gaGV4X3NpemUvMiwgYnkgPSBoZXhfc2l6ZSwgbGVuZ3RoLm91dCA9IE1BWF9ST1dTKSksIE1BWF9ST1dTKk1BWF9DT0xTKQoKaGV4X2NlbnRlcl95cyA8LSBzb3J0KGMocmVwKHNlcShmcm9tID0gMCwgYnkgPSBoZXhfc2l6ZSpzcXJ0KDMpLCBsZW5ndGgub3V0PWNlaWxpbmcoTUFYX0NPTFMvMikpLCBNQVhfUk9XUyksCiAgICAgICAgICAgIHJlcChzZXEoZnJvbSA9IGhleF9zaXplKnNxcnQoMykvMiwgYnkgPSBoZXhfc2l6ZSpzcXJ0KDMpLCBsZW5ndGgub3V0PWZsb29yKE1BWF9DT0xTLzIpKSwgTUFYX1JPV1MpKSxkZWNyZWFzaW5nID0gVFJVRSkKCmhleF94ID0gY2JpbmQoaGV4X2NlbnRlcl94cyArIDAsIGhleF9jZW50ZXJfeHMgKyAwLjUsIGhleF9jZW50ZXJfeHMgKyAwLjUsCiAgICAgICAgICAgICAgaGV4X2NlbnRlcl94cyArIDAsIGhleF9jZW50ZXJfeHMgLSAwLjUsIGhleF9jZW50ZXJfeHMgLSAwLjUpIApoZXhfeSA9IGNiaW5kKGhleF9jZW50ZXJfeXMgLSAxLyhzcXJ0KDMpKSwgaGV4X2NlbnRlcl95cyAtIDEvKDIqc3FydCgzKSksIGhleF9jZW50ZXJfeXMgKyAxLygyKnNxcnQoMykpLAogICAgICAgICAgICAgIGhleF9jZW50ZXJfeXMgKyAxLyhzcXJ0KDMpKSwgaGV4X2NlbnRlcl95cyArIDEvKDIqc3FydCgzKSksIGhleF9jZW50ZXJfeXMgLSAxLygyKnNxcnQoMykpKQoKaGV4ZGF0X3ggPC0gbWVsdChjYmluZChpZCA9IDE6bGVuZ3RoKGhleF9jZW50ZXJfeHMpLCBhcy5kYXRhLmZyYW1lKGhleF94KSksIGlkLnZhcnMgPSAiaWQiLCB2YWx1ZS5uYW1lID0gIngiKQpoZXhkYXRfeSA8LSBtZWx0KGNiaW5kKGlkID0gMTpsZW5ndGgoaGV4X2NlbnRlcl95cyksIGFzLmRhdGEuZnJhbWUoaGV4X3kpKSwgaWQudmFycyA9ICJpZCIsIHZhbHVlLm5hbWUgPSAieSIpCgpoZXhkYXQgPC0gZnVsbF9qb2luKGhleGRhdF95LCBoZXhkYXRfeCkKYGBgCgpUaGlzIHRha2VzIGEgZ2l2ZW4gaGl2ZSBhbmQgdHVybnMgaXQgaW50byBhIGdyYXBoCgpgYGB7cn0KCmhpdmVfbWF0cml4X3RvX2dyYXBoIDwtIGZ1bmN0aW9uKGhpdmVfZGF0YSl7CiAgaGl2ZV9kZiA8LSBhcy5kYXRhLmZyYW1lKGFzLnRhYmxlKGhpdmVfZGF0YSkpCiAgY29sbmFtZXMoaGl2ZV9kZikgPC0gYygieCIsInkiLCJjb250ZW50cyIpCiAgaGl2ZV9kZiA8LSBoaXZlX2RmICU+JSBtdXRhdGUoaWQgPSAxOihNQVhfQ09MUypNQVhfUk9XUykpICU+JSAKICAgICAgICAgICAgICAgICAgICAgICAgIG11dGF0ZShuYW1lZF9jb250ZW50ID0gaWZlbHNlKGNvbnRlbnRzID09IDAsICJFbXB0eSIsCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBpZmVsc2UoY29udGVudHMgPT0gMSwgIkJyb29kIiwKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBpZmVsc2UoY29udGVudHMgPT0gMiwgIlBvbGxlbiIsCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIGlmZWxzZShjb250ZW50cyA9PSAzLCAiSG9uZXkiLCI/Pz8iKSkpKSkKICBuZXdfaGV4ZGF0IDwtIGZ1bGxfam9pbihoZXhkYXQsCiAgICAgICAgICAgICAgICAgICAgICAgICAgaGl2ZV9kZiAlPiUgc2VsZWN0KGlkLG5hbWVkX2NvbnRlbnQpLAogICAgICAgICAgICAgICAgICAgICAgICAgIGJ5PSJpZCIpICU+JSBtdXRhdGUobmFtZWRfY29udGVudCA9IGZjdF9yZWxldmVsKGFzLmZhY3RvcihuYW1lZF9jb250ZW50KSx0eXBlcykpCiAgCiAgZyA8LSBnZ3Bsb3QobmV3X2hleGRhdCwgYWVzKHgsIHkpKSArIAogICAgICAgIGdlb21fcG9seWdvbihhZXMoZ3JvdXAgPSBpZCwgZmlsbCA9IG5hbWVkX2NvbnRlbnQpLCBjb2xvdXIgPSAiYmxhY2siKSArCiAgICAgICAgc2NhbGVfZmlsbF9tYW51YWwodmFsdWVzPWhpdmVfY29sb3JzKSArCiAgICAgICAgY29vcmRfZml4ZWQoKSArCiAgICAgICAgdGhlbWVfY2xhc3NpYygpCiAgCiAgcmV0dXJuKGcpCn0KYGBgCgpNb3ZpbmcgdGhyb3VnaCBoZXhhZ29ucyAoaHR0cHM6Ly93d3cucmVkYmxvYmdhbWVzLmNvbS9ncmlkcy9oZXhhZ29ucy8pCklmIHdlIHN0b3JlIHRoZSBoZXhhZ29uIHZhbHVlcyBpbiBhIDJEIGdyaWQgd2UgbmVlZCB0byBrbm93IHdoaWNoICJzcXVhcmVzIiBhcmUgYWN0dWFsbHkgbmV4dCB0byBlYWNoIG90aGVyIG9uIGEgaGV4YWdvbmFsIGdyaWQKCk9uIGEgc3F1YXJlIGdyaWQgd2UgY2FuIG1vdmUgZnJvbSBbWCxZXSB0byBbWCsxLFldLCBbWC0xLFldLCBbWCxZKzFdLCBhbmQgW1gsWS0xXSwgaWYgd2UgcmVtb3ZlIGRpYWdvbmFscwoKT24gYSBoZXhhZ29uYWwgZ3JpZCAodXNpbmcgd2hhdCB0aGV5IGNhbGwg4oCcb2RkLXLigJ0gaG9yaXpvbnRhbCBsYXlvdXQpIHdlIGNhbiBtb3ZlIGZyb20gW1gsWV0gdG86CiAgICBbWC0xLFktMV0sIFtYLTEsWV0sIFtYLTEsWSsxXSwgW1gsWSsxXSwgW1grMSxZXSwgW1gsWS0xXQogICAgCkJ1dCB0aGF0J3MgKmp1c3QqIGZvciB0aGUgb2RkIHJvd3MgKDEgaW5kZXhlZCkuIEZvciB0aGUgZXZlbiByb3dzIGl0J3M6IAogICAgW1gsWS0xXSwgW1gtMSxZXSwgW1gsWSsxXSwgW1grMSxZKzFdLCBbWCsxLFldLCBbWCsxLFktMV0KCmBgYHtyfQoKaGV4X21vdmUgPC0gZnVuY3Rpb24oY3VyX1gsY3VyX1kscHJldl9YLHByZXZfWSl7CiAgZXZlbl9yb3dfbGVnYWxfaGV4ZXMgPC0gdGliYmxlKAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHggPSBjKGN1cl9YLGN1cl9YLTEsY3VyX1gsY3VyX1grMSxjdXJfWCsxLGN1cl9YKzEpLAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHkgPSBjKGN1cl9ZLTEsY3VyX1ksY3VyX1krMSxjdXJfWSsxLGN1cl9ZLGN1cl9ZLTEpCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICApCiAgb2RkX3Jvd19sZWdhbF9oZXhlcyA8LSB0aWJibGUoCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgeCA9IGMoY3VyX1gtMSxjdXJfWC0xLGN1cl9YLTEsY3VyX1gsY3VyX1grMSxjdXJfWCksCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgeSA9IGMoY3VyX1ktMSxjdXJfWSxjdXJfWSsxLGN1cl9ZKzEsY3VyX1ksY3VyX1ktMSkKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICkKICAKICAjY2hlY2sgaWYgb3VyIHJvdyBpcyBldmVuIG9yIG9kZAogIGlmKGN1cl9ZICUlIDIgPT0gMCl7CiAgICBsZWdhbF9oZXhlcyA8LSBldmVuX3Jvd19sZWdhbF9oZXhlcwogIH0KICBlbHNlewogICAgbGVnYWxfaGV4ZXMgPC0gb2RkX3Jvd19sZWdhbF9oZXhlcwogIH0KICAKICAjTWFrZXMgc3VyZSBpdCBjYW4ndCBtb3ZlIGJhY2sgdG8gd2hlcmUgaXQgd2FzLCBvciB0byB0aGUgbGFzdCBzcXVhcmUgaXQgd2FzIG9uCiAgI0Fsc28gUiBpcyAxIGluZGV4ZWQsIHNvIGl0IGNhbid0IGJlIDAgb3IgbGVzcwogIGxlZ2FsX2hleGVzIDwtIGxlZ2FsX2hleGVzICU+JSBmaWx0ZXIoeCA+IDApICU+JSBmaWx0ZXIoeSA+IDApICU+JQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBmaWx0ZXIoeCA8PSBNQVhfUk9XUykgJT4lIGZpbHRlcih5IDw9IE1BWF9DT0xTKSAlPiUKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgZmlsdGVyKCEoeCA9PSBwcmV2X1ggJiB5ID09IHByZXZfWSkpCiAgCiAgbmV4dF9oZXggPC0gbGVnYWxfaGV4ZXMgJT4lIHNhbXBsZV9uKDEpCiAgCiAgcmV0dXJuKGMobmV4dF9oZXgkeCxuZXh0X2hleCR5KSkKfQoKaGV4X21vdmUoMiwyLDMsMykKCmBgYAoKRGVmaW5lcyB3aGF0IGEgYmVlIGlzIApgYGB7cn0KQmVlIDwtIFI2Q2xhc3MoIkJlZSIsCiAgICAgICAgICAgICAgIHB1YmxpYyA9IGxpc3QoCiAgICAgICAgICAgICAgICAgY3VyX1ggPSBOVUxMLAogICAgICAgICAgICAgICAgIGN1cl9ZID0gTlVMTCwKICAgICAgICAgICAgICAgICBwcmV2X1ggPSAtMSwKICAgICAgICAgICAgICAgICBwcmV2X1kgPSAtMSwKICAgICAgICAgICAgICAgICBjYXJyeSA9IE5VTEwsCiAgICAgICAgICAgICAgICAgaW5pdGlhbGl6ZSA9IGZ1bmN0aW9uKGN1cl9YID0gTkEsIGN1cl9ZID0gTkEsIGNhcnJ5ID0gTkEpIHsKICAgICAgICAgICAgICAgICAgICBzZWxmJGN1cl9YIDwtIGN1cl9YCiAgICAgICAgICAgICAgICAgICAgc2VsZiRjdXJfWSA8LSBjdXJfWQogICAgICAgICAgICAgICAgICAgIHNlbGYkY2FycnkgPC0gY2FycnkKICAgICAgICAgICAgICAgICAgfSwKICAgICAgICAgICAgICAgICBtb3ZlID0gZnVuY3Rpb24oKXsKICAgICAgICAgICAgICAgICAgIG5leHRfaGV4IDwtIGhleF9tb3ZlKHNlbGYkY3VyX1gsc2VsZiRjdXJfWSxzZWxmJHByZXZfWCxzZWxmJHByZXZfWSkKICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgc2VsZiRwcmV2X1ggPC0gc2VsZiRjdXJfWAogICAgICAgICAgICAgICAgICAgc2VsZiRwcmV2X1kgPC0gc2VsZiRjdXJfWQogICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICBzZWxmJGN1cl9YIDwtIG5leHRfaGV4WzFdCiAgICAgICAgICAgICAgICAgICBzZWxmJGN1cl9ZIDwtIG5leHRfaGV4WzJdCiAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICNwcmludChjKHNlbGYkY3VyX1gsc2VsZiRjdXJfWSkpCiAgICAgICAgICAgICAgICAgfSwKICAgICAgICAgICAgICAgICBhbHRlcl9jb21iID0gZnVuY3Rpb24oY3VycmVudF9oaXZlKXsKICAgICAgICAgICAgICAgICAgIGN1cnJlbnRfaGl2ZVtzZWxmJGN1cl9YLHNlbGYkY3VyX1ldIDwtIHNlbGYkY2FycnkKICAgICAgICAgICAgICAgICAgIHJldHVybihjdXJyZW50X2hpdmUpCiAgICAgICAgICAgICAgICAgfSwKICAgICAgICAgICAgICAgICBidXp6ID0gZnVuY3Rpb24oKXsKICAgICAgICAgICAgICAgICAgIGNhdChwYXN0ZTAoIkhlbGxvLCBJIGFtIGEgYmVlIGNhcnJ5aW5nICIsIHNlbGYkY2FycnksICIgYXQgWCA9ICIsIHNlbGYkY3VyX1gsICIgYW5kIFkgPSAiLCBzZWxmJGN1cl9ZLCAiLlxuIikpCiAgICAgICAgICAgICAgICAgfQogICAgICAgICAgICAgICApCiAgICAgICAgICAgICApCmBgYAoKUnVucyB0aGUgc2ltdWxhdGlvbiB3aXRoIHRoZSBiZWVzCgpgYGB7cn0KY2FuX2NhcnJ5IDwtIGMoSE9ORVksUE9MTEVOLEJST09EKQoKbl9iZWVzID0gMjAKCmJlZXMgPC0gbGlzdCgpCgpmb3IobiBpbiAxOm5fYmVlcyl7CiAgYmVlcyA8LSBhcHBlbmQoYmVlcywgbGlzdChCZWUkbmV3KHNhbXBsZSgxOk1BWF9ST1dTLCAxKSwgc2FtcGxlKDE6TUFYX0NPTFMsIDEpLCBzYW1wbGUoY2FuX2NhcnJ5LCAxKSkpKQp9CgpoaXZlIDwtIG1hdHJpeChFTVBUWSxNQVhfUk9XUyxNQVhfQ09MUykKCmNvbG5hbWVzKGhpdmUpIDwtIDE6TUFYX0NPTFMKcm93bmFtZXMoaGl2ZSkgPC0gMTpNQVhfUk9XUwoKCmZvcih4IGluIDE6MTAwKXsKICBmb3IoaSBpbiAxOmxlbmd0aChiZWVzKSl7CiAgICBoaXZlIDwtIGJlZXNbW2ldXSRhbHRlcl9jb21iKGhpdmUpCiAgICBiZWVzW1tpXV0kbW92ZSgpCiAgfQogIGdnc2F2ZShwYXN0ZTAoImhpdmVfcGxvdHMvaGl2ZXBsb3RfIix4LCIucG5nIiksaGl2ZV9tYXRyaXhfdG9fZ3JhcGgoaGl2ZSkpCn0KCmBgYA==</div>
 
 
 
