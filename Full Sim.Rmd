@@ -24,8 +24,8 @@ POLLEN <- 2
 HONEY <- 3 
 EMPTY <- 0
 
-MAX_ROWS <- 5
-MAX_COLS <- 5
+MAX_ROWS <- 20
+MAX_COLS <- 20
 
 MAX_HONEY <- 25
 MAX_POLLEN <- 12
@@ -35,10 +35,10 @@ TOTAL_DAILY_HONEY <- 833
 
 POLLEN_RATIO <- 0.21
 
-POLLEN_CONSUMPTION_RATIO <- 0.99
-HONEY_CONSUMPTION_RATIO <- 0.59
+POLLEN_CONSUMPTION_RATIO <- 2 #0.99
+HONEY_CONSUMPTION_RATIO <- 2 #0.59
 
-N_BEES <- 2
+N_BEES <- 30
 
 #Only collecting during the day, eat all the time (Night and day coming later, all 12 for now)
 HONEY_BY_HOUR_BY_BEE <- ceiling(TOTAL_DAILY_HONEY/N_BEES/12)
@@ -74,10 +74,10 @@ hexdat_y <- melt(cbind(id = 1:length(hex_center_ys), as.data.frame(hex_y)), id.v
 
 hexdat <- full_join(hexdat_y, hexdat_x)
 
-hex_center_xs_df <- melt(cbind(id = 1:length(hex_center_xs), as.data.frame(hex_center_xs)), id.vars = "id", value.name = "x")
-hex_center_ys_df <- melt(cbind(id = 1:length(hex_center_ys), as.data.frame(hex_center_ys)), id.vars = "id", value.name = "y")
+hex_center_xs_df <- melt(cbind(id = 1:length(hex_center_xs), as.data.frame(hex_center_xs)), id.vars = "id", value.name = "x") %>% select(-variable)
+hex_center_ys_df <- melt(cbind(id = 1:length(hex_center_ys), as.data.frame(hex_center_ys)), id.vars = "id", value.name = "y") %>% select(-variable)
 
-hexdat_centers <- full_join(hex_center_xs_df, hex_center_ys_df)
+hexdat_centers <- full_join(hex_center_xs_df, hex_center_ys_df, by = "id") 
 
 ```
 
@@ -85,8 +85,8 @@ This takes a given hive and turns it into a graph
 
 ```{r Hive to Graph}
 
-hive_matrix_to_graph <- function(hive_data){
-  hive_df <- as.data.frame(as.table(hive)) %>% pivot_wider(names_from = Var3, values_from = Freq)
+hive_matrix_to_graph <- function(hive_data, bees){
+  hive_df <- as.data.frame(as.table(hive_data)) %>% pivot_wider(names_from = Var3, values_from = Freq)
   colnames(hive_df) <- c("x","y","contents","amount")
   hive_df <- hive_df %>% mutate(id = 1:(MAX_COLS*MAX_ROWS)) %>% 
                          mutate(named_content = ifelse(contents == 0, "Empty",
@@ -101,8 +101,27 @@ hive_matrix_to_graph <- function(hive_data){
                                                       ifelse(named_content == "Pollen",amount/MAX_POLLEN,
                                                              ifelse(named_content == "Brood",amount/MAX_BROOD,1))))
   
-  g <- ggplot(new_hexdat, aes(x, y)) + 
-        geom_polygon(aes(group = id, fill = named_content, alpha = amount), colour = "black") +
+  bee_locs <- matrix(EMPTY,MAX_ROWS,MAX_COLS)
+  
+  for(i in 1:length(bees)){
+    bee_locs[bees[[i]]$cur_X,bees[[i]]$cur_Y] <- 1
+  }
+  
+  colnames(bee_locs) <- 1:MAX_COLS
+  rownames(bee_locs) <- 1:MAX_ROWS
+  
+  bee_locs <- as.data.frame(as.table(bee_locs))
+  
+  colnames(bee_locs) <- c("col","row","is_bee")
+  bee_locs <- bee_locs %>% mutate(id = 1:(MAX_COLS*MAX_ROWS))
+  
+  new_bee_locs <- full_join(hexdat_centers,bee_locs,by = "id") %>% filter(is_bee == 1)
+                            
+  
+  g <- ggplot() + 
+        geom_polygon(new_hexdat, mapping = aes(x,y,group = id, fill = named_content, alpha = amount), colour = "black") +
+        geom_point(new_bee_locs, mapping = aes(x,y), color = "black", size = 5) +
+        geom_point(new_bee_locs, mapping = aes(x,y), color = "yellow", size = 3) +
         scale_fill_manual(values=hive_colors) +
         coord_fixed() +
         theme_classic()
@@ -113,7 +132,7 @@ hive_matrix_to_graph <- function(hive_data){
 
 ```{r}
 make_random_hive <- function(){
-  layer1 <- sample(c(EMPTY,BROOD,HONEY,POLLEN), MAX_ROWS*MAX_COLS, replace = TRUE, prob = c(1,1,1,1))
+  layer1 <- sample(c(EMPTY,BROOD,HONEY,POLLEN), MAX_ROWS*MAX_COLS, replace = TRUE, prob = c(5,1,1,1))
   
   rand_hive <- array(c(layer1,rep(EMPTY,MAX_ROWS*MAX_COLS)), dim = c(MAX_ROWS,MAX_COLS, 2))
   
@@ -323,10 +342,10 @@ for(h in 1:24){
   #Bees move 6 times and hour, then they get refilled
   for(m in 1:6){
     for(i in 1:length(bees)){
-      hive <- bees[[i]]$interact_with_comb(hive)
       bees[[i]]$move()
+      hive <- bees[[i]]$interact_with_comb(hive)
     }
-    ggsave(paste0("hive_plots/hiveplot_",h,"_",m,".png"),hive_matrix_to_graph(hive))
+    ggsave(paste0("hive_plots/hiveplot_",h,"_",m,".png"),hive_matrix_to_graph(hive,bees))
   }
   #Then reset bees
   for(i in 1:length(bees)){
