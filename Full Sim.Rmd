@@ -4,15 +4,13 @@ output: html_notebook
 ---
 
 To do:
- - Add ability for bees to eat
- - Have bees add honey or pollen to already existing or empty
  - Have bees check nearby brood for eating honey
  - Add Queen
     - Have Queen check for brood before laying
  - Add day and night
  - Allow brood to hatch
 
-```{r}
+```{r Packages}
 library(tidyverse)
 library(forcats)
 library(reshape2)
@@ -20,28 +18,43 @@ library(R6)
 ```
 
 Define variables
-```{r}
+```{r Variables}
 BROOD <- 1
 POLLEN <- 2
 HONEY <- 3 
 EMPTY <- 0
-```
 
+MAX_ROWS <- 5
+MAX_COLS <- 5
 
-Define Starting Honeycomb
-```{r}
-MAX_ROWS <- 10
-MAX_COLS <- 10
+MAX_HONEY <- 25
+MAX_POLLEN <- 12
+MAX_BROOD <- 21
 
-hive <- array(EMPTY, dim = c(MAX_ROWS,MAX_COLS, 2)) #matrix(EMPTY,MAX_ROWS,MAX_COLS)
+TOTAL_DAILY_HONEY <- 833
+
+POLLEN_RATIO <- 0.21
+
+POLLEN_CONSUMPTION_RATIO <- 0.99
+HONEY_CONSUMPTION_RATIO <- 0.59
+
+N_BEES <- 2
+
+#Only collecting during the day, eat all the time (Night and day coming later, all 12 for now)
+HONEY_BY_HOUR_BY_BEE <- ceiling(TOTAL_DAILY_HONEY/N_BEES/12)
+POLLEN_BY_HOUR_BY_BEE <- ceiling((TOTAL_DAILY_HONEY*POLLEN_RATIO)/N_BEES/12)
+
+EATEN_HONEY_BY_HOUR_BY_BEE <- ceiling((TOTAL_DAILY_HONEY*HONEY_CONSUMPTION_RATIO)/N_BEES/12)
+EATEN_POLLEN_BY_HOUR_BY_BEE <- ceiling((TOTAL_DAILY_HONEY*POLLEN_RATIO*POLLEN_CONSUMPTION_RATIO)/N_BEES/12)
 ```
 
 Makes the beehive graph framework
 https://stackoverflow.com/questions/24006361/plot-series-of-filled-hexagons-in-ggplot2
-```{r}
+```{r Beehive Graph}
 
 types <- c("Brood", "Pollen", "Honey", "Empty")
-hive_colors <- c("#F3DAB1","#FFF966","#DE620B","#230F11")
+#hive_colors <- c("#F3DAB1","#FFF966","#DE620B","#230F11")
+hive_colors <- c("#FF0000","#00FF00","#0000FF","#000000")
 
 hex_size <- 1
 
@@ -60,26 +73,36 @@ hexdat_x <- melt(cbind(id = 1:length(hex_center_xs), as.data.frame(hex_x)), id.v
 hexdat_y <- melt(cbind(id = 1:length(hex_center_ys), as.data.frame(hex_y)), id.vars = "id", value.name = "y")
 
 hexdat <- full_join(hexdat_y, hexdat_x)
+
+hex_center_xs_df <- melt(cbind(id = 1:length(hex_center_xs), as.data.frame(hex_center_xs)), id.vars = "id", value.name = "x")
+hex_center_ys_df <- melt(cbind(id = 1:length(hex_center_ys), as.data.frame(hex_center_ys)), id.vars = "id", value.name = "y")
+
+hexdat_centers <- full_join(hex_center_xs_df, hex_center_ys_df)
+
 ```
 
 This takes a given hive and turns it into a graph
 
-```{r}
+```{r Hive to Graph}
 
 hive_matrix_to_graph <- function(hive_data){
-  hive_df <- as.data.frame(as.table(hive_data[,,1]))
-  colnames(hive_df) <- c("x","y","contents")
+  hive_df <- as.data.frame(as.table(hive)) %>% pivot_wider(names_from = Var3, values_from = Freq)
+  colnames(hive_df) <- c("x","y","contents","amount")
   hive_df <- hive_df %>% mutate(id = 1:(MAX_COLS*MAX_ROWS)) %>% 
                          mutate(named_content = ifelse(contents == 0, "Empty",
                                                        ifelse(contents == 1, "Brood",
                                                               ifelse(contents == 2, "Pollen",
                                                                      ifelse(contents == 3, "Honey","???")))))
   new_hexdat <- full_join(hexdat,
-                          hive_df %>% select(id,named_content),
+                          hive_df %>% select(id,named_content,amount),
                           by="id") %>% mutate(named_content = fct_relevel(as.factor(named_content),types))
   
+  new_hexdat <- new_hexdat %>% mutate(amount = ifelse(named_content == "Honey",amount/MAX_HONEY,
+                                                      ifelse(named_content == "Pollen",amount/MAX_POLLEN,
+                                                             ifelse(named_content == "Brood",amount/MAX_BROOD,1))))
+  
   g <- ggplot(new_hexdat, aes(x, y)) + 
-        geom_polygon(aes(group = id, fill = named_content), colour = "black") +
+        geom_polygon(aes(group = id, fill = named_content, alpha = amount), colour = "black") +
         scale_fill_manual(values=hive_colors) +
         coord_fixed() +
         theme_classic()
@@ -87,6 +110,27 @@ hive_matrix_to_graph <- function(hive_data){
   return(g)
 }
 ```
+
+```{r}
+make_random_hive <- function(){
+  layer1 <- sample(c(EMPTY,BROOD,HONEY,POLLEN), MAX_ROWS*MAX_COLS, replace = TRUE, prob = c(1,1,1,1))
+  
+  rand_hive <- array(c(layer1,rep(EMPTY,MAX_ROWS*MAX_COLS)), dim = c(MAX_ROWS,MAX_COLS, 2))
+  
+  for(x in 1:MAX_ROWS){
+    for(y in 1:MAX_COLS){
+      layer2_val <- ifelse(rand_hive[x,y,1] == BROOD, sample(1:MAX_BROOD, 1),
+                          ifelse(rand_hive[x,y,1] == HONEY, sample(1:MAX_HONEY,1),
+                                 ifelse(rand_hive[x,y,1] == POLLEN, sample(1:MAX_POLLEN,1),
+                                        0)))
+      rand_hive[x,y,2] <- layer2_val
+    }
+  }
+  
+  return(rand_hive)
+}
+```
+
 
 Moving through hexagons (https://www.redblobgames.com/grids/hexagons/)
 If we store the hexagon values in a 2D grid we need to know which "squares" are actually next to each other on a hexagonal grid
@@ -99,7 +143,7 @@ On a hexagonal grid (using what they call “odd-r” horizontal layout) we can 
 But that's *just* for the odd rows (1 indexed). For the even rows it's: 
     [X,Y-1], [X-1,Y], [X,Y+1], [X+1,Y+1], [X+1,Y], [X+1,Y-1]
 
-```{r}
+```{r Hex Movement}
 
 hex_move <- function(cur_X,cur_Y,prev_X,prev_Y){
   even_row_legal_hexes <- tibble(
@@ -133,18 +177,20 @@ hex_move <- function(cur_X,cur_Y,prev_X,prev_Y){
 ```
 
 Defines what a bee is 
-```{r}
+```{r Bee Definition}
 Bee <- R6Class("Bee",
                public = list(
                  cur_X = NULL,
                  cur_Y = NULL,
                  prev_X = -1,
                  prev_Y = -1,
-                 carry = NULL,
-                 initialize = function(cur_X = NA, cur_Y = NA, carry = NA) {
+                 honey_to_deposit = HONEY_BY_HOUR_BY_BEE,
+                 pollen_to_deposit = POLLEN_BY_HOUR_BY_BEE,
+                 honey_to_eat = EATEN_HONEY_BY_HOUR_BY_BEE,
+                 pollen_to_eat = EATEN_POLLEN_BY_HOUR_BY_BEE,
+                 initialize = function(cur_X = NA, cur_Y = NA) {
                     self$cur_X <- cur_X
                     self$cur_Y <- cur_Y
-                    self$carry <- carry
                   },
                  move = function(){
                    next_hex <- hex_move(self$cur_X,self$cur_Y,self$prev_X,self$prev_Y)
@@ -157,12 +203,96 @@ Bee <- R6Class("Bee",
                    
                    #print(c(self$cur_X,self$cur_Y))
                  },
-                 alter_comb = function(current_hive){
-                   current_hive[self$cur_X,self$cur_Y,1] <- self$carry
+                 interact_with_comb = function(current_hive){
+                   curr_fill <- current_hive[self$cur_X,self$cur_Y,1]
+                   curr_val <- current_hive[self$cur_X,self$cur_Y,2]
+                   
+                   #If you end up on an empy hive
+                   if(curr_fill == EMPTY){
+                     #randomly select what to add, biased by the pollen ratio
+                     what_to_add <- sample(c(HONEY,POLLEN),1,prob = c(1,POLLEN_RATIO))
+                     
+                     #Deposit only if you have something to deposit
+                     if(what_to_add == HONEY && self$honey_to_deposit > 0){
+                       current_hive[self$cur_X,self$cur_Y,1] <- HONEY
+                       current_hive[self$cur_X,self$cur_Y,2] <- self$honey_to_deposit
+                       #Set your own honey to 0
+                       self$honey_to_deposit <- 0
+                     } else if (what_to_add == POLLEN && self$pollen_to_deposit > 0){
+                       current_hive[self$cur_X,self$cur_Y,1] <- POLLEN
+                       current_hive[self$cur_X,self$cur_Y,2] <- self$pollen_to_deposit
+                       #Set your own pollen to 0
+                       self$pollen_to_deposit <- 0
+                     }
+                  
+                  # If you land on honey...
+                   } else if(curr_fill == HONEY){
+                        #If you have honey to deposit do to, if it isn't full
+                        if (self$honey_to_deposit > 0 && curr_val < MAX_HONEY){
+                            #If you can add it all do it, otherwise only add part
+                            if (curr_val + self$honey_to_deposit <= MAX_HONEY){
+                              current_hive[self$cur_X,self$cur_Y,2] <- curr_val + self$honey_to_deposit
+                              self$honey_to_deposit <- 0
+                            } else{
+                              current_hive[self$cur_X,self$cur_Y,2] <- MAX_HONEY
+                              self$honey_to_deposit <- self$honey_to_deposit - (MAX_HONEY - curr_val)
+                            }
+                        # You are done putting it away then you can take
+                        } else if(self$honey_to_deposit == 0 && self$honey_to_eat > 0){
+                          # If you can eat enough do it otherwise only eat part
+                          if (curr_val >= self$honey_to_eat){
+                            current_hive[self$cur_X,self$cur_Y,2] <- curr_val - self$honey_to_eat
+                            self$honey_to_eat <- 0
+                            #If there is 0 left change to empty
+                            if (curr_val - self$honey_to_eat == 0){
+                              current_hive[self$cur_X,self$cur_Y,1] <- EMPTY
+                            }
+                          } else{
+                            #If there isn't enough set it to empty and eat all you can
+                            current_hive[self$cur_X,self$cur_Y,2] <- 0
+                            current_hive[self$cur_X,self$cur_Y,1] <- EMPTY
+                            self$honey_to_eat <- self$honey_to_eat - curr_val
+                          }
+                        }
+                   } else if(curr_fill == POLLEN){
+                        #If you have honey to deposit do to, if it isn't full
+                        if (self$pollen_to_deposit > 0 && curr_val < MAX_POLLEN){
+                            #If you can add it all do it, otherwise only add part
+                            if (curr_val + self$pollen_to_deposit <= MAX_POLLEN){
+                              current_hive[self$cur_X,self$cur_Y,2] <- curr_val + self$pollen_to_deposit
+                              self$pollen_to_deposit <- 0
+                            } else{
+                              current_hive[self$cur_X,self$cur_Y,2] <- MAX_POLLEN
+                              self$pollen_to_deposit <- self$pollen_to_deposit - (MAX_POLLEN - curr_val)
+                            }
+                        # You are done putting it away then you can take
+                        } else if(self$pollen_to_deposit == 0 && self$pollen_to_eat > 0){
+                          # If you can eat enough do it otherwise only eat part
+                          if (curr_val >= self$pollen_to_eat){
+                            current_hive[self$cur_X,self$cur_Y,2] <- curr_val - self$pollen_to_eat
+                            self$pollen_to_eat <- 0
+                            #If there is 0 left change to empty
+                            if (curr_val - self$pollen_to_eat == 0){
+                              current_hive[self$cur_X,self$cur_Y,1] <- EMPTY
+                            }
+                          } else{
+                            #If there isn't enough set it to empty and eat all you can
+                            current_hive[self$cur_X,self$cur_Y,2] <- 0
+                            current_hive[self$cur_X,self$cur_Y,1] <- EMPTY
+                            self$pollen_to_eat <- self$pollen_to_eat - curr_val
+                          }
+                        }
+                   }
                    return(current_hive)
                  },
                  buzz = function(){
-                   cat(paste0("Hello, I am a bee carrying ", self$carry, " at X = ", self$cur_X, " and Y = ", self$cur_Y, ".\n"))
+                   cat(paste0("Hello, I am a bee! I have:\n",
+                              self$honey_to_deposit, " Honey \n",
+                              self$pollen_to_deposit, " Pollen \n\n",
+                              "I want to eat:\n",
+                              self$honey_to_eat, " Honey \n",
+                              self$pollen_to_eat, " Pollen \n\n",
+                              "I am at: X = ", self$cur_X, " and Y = ", self$cur_Y, ".\n"))
                  }
                )
              )
@@ -170,29 +300,41 @@ Bee <- R6Class("Bee",
 
 Runs the simulation with the bees
 
-```{r}
-can_carry <- c(HONEY,POLLEN,BROOD)
-
-n_bees = 20
-
+```{r Simulation}
 bees <- list()
 
-for(n in 1:n_bees){
-  bees <- append(bees, list(Bee$new(sample(1:MAX_ROWS, 1), sample(1:MAX_COLS, 1), sample(can_carry, 1))))
+for(n in 1:N_BEES){
+  bees <- append(bees, list(Bee$new(sample(1:MAX_ROWS, 1), sample(1:MAX_COLS, 1))))
 }
 
-hive <- array(EMPTY, dim = c(MAX_ROWS,MAX_COLS, 2))
+#hive <- array(EMPTY, dim = c(MAX_ROWS,MAX_COLS, 2))'
+hive <- make_random_hive()
+
+hive[1,1,1] <- BROOD
+hive[1,1,2] <- sample(1:MAX_BROOD,1)
+hive[1,2,1] <- POLLEN
+hive[1,2,2] <- sample(1:POLLEN,1)
 
 colnames(hive) <- 1:MAX_COLS
 rownames(hive) <- 1:MAX_ROWS
 
-
-for(x in 1:20){
-  for(i in 1:length(bees)){
-    hive <- bees[[i]]$alter_comb(hive)
-    bees[[i]]$move()
+#
+for(h in 1:24){
+  #Bees move 6 times and hour, then they get refilled
+  for(m in 1:6){
+    for(i in 1:length(bees)){
+      hive <- bees[[i]]$interact_with_comb(hive)
+      bees[[i]]$move()
+    }
+    ggsave(paste0("hive_plots/hiveplot_",h,"_",m,".png"),hive_matrix_to_graph(hive))
   }
-  ggsave(paste0("hive_plots/hiveplot_",x,".png"),hive_matrix_to_graph(hive))
+  #Then reset bees
+  for(i in 1:length(bees)){
+      bees[[i]]$honey_to_deposit <- HONEY_BY_HOUR_BY_BEE
+      bees[[i]]$pollen_to_deposit <- POLLEN_BY_HOUR_BY_BEE
+      bees[[i]]$honey_to_eat <- EATEN_HONEY_BY_HOUR_BY_BEE
+      bees[[i]]$pollen_to_eat <- EATEN_POLLEN_BY_HOUR_BY_BEE
+  }
 }
 
 ```
