@@ -60,7 +60,7 @@ This takes a given hive and turns it into a graph
 ```{r Hive to Graph}
 
 hive_matrix_to_graph <- function(hive_data, bees, nurses,queen){
-  hive_df <- as.data.frame(as.table(hive_data)) %>% pivot_wider(names_from = Var3, values_from = Freq)
+  hive_df <- as.data.frame(as.table(hive_data[,,1:2])) %>% pivot_wider(names_from = Var3, values_from = Freq)
   colnames(hive_df) <- c("x","y","contents","amount")
   hive_df <- hive_df %>% mutate(id = 1:(MAX_COLS*MAX_ROWS)) %>% 
                          mutate(named_content = ifelse(contents == 0, "Empty",
@@ -219,11 +219,25 @@ age_brood <- function(hive_data){
     #If they aren't about to become max age add 1 to age
     if(hive_data[brood_xs[i],brood_ys[i],2] < MAX_BROOD-1){
       hive_data[brood_xs[i],brood_ys[i],2] <- hive_data[brood_xs[i],brood_ys[i],2] + 1
+      hive_data[brood_xs[i],brood_ys[i],3] <- 0
+      hive_data[brood_xs[i],brood_ys[i],4] <- 0
     } else{
       #If they are then empty it out
       hive_data[brood_xs[i],brood_ys[i],1] <- EMPTY
       hive_data[brood_xs[i],brood_ys[i],2] <- 0
+      hive_data[brood_xs[i],brood_ys[i],3] <- 0
+      hive_data[brood_xs[i],brood_ys[i],4] <- 0
     }
+    
+    if(hive_data[brood_xs[i],brood_ys[i],3] < BROOD_HONEY_NEEDED || 
+       hive_data[brood_xs[i],brood_ys[i],4] < BROOD_POLLEN_NEEDED){
+      #If they didn't get enough food then empty it out
+      hive_data[brood_xs[i],brood_ys[i],1] <- EMPTY
+      hive_data[brood_xs[i],brood_ys[i],2] <- 0
+      hive_data[brood_xs[i],brood_ys[i],3] <- 0
+      hive_data[brood_xs[i],brood_ys[i],4] <- 0
+    }
+    
   }
  return(hive_data)
 }
@@ -260,12 +274,20 @@ hive <- make_random_hive()
 #hive[5:16,5:16,2] <- sample(1:MAX_BROOD,(16-5+1)*(16-5+1),replace = TRUE)
 hive[5:16,5:7,1] <- BROOD
 hive[5:16,5:7,2] <- sample(1:MAX_BROOD,(16-5+1)*(7-5+1),replace = TRUE)
+hive[5:16,5:7,3] <- sample(0:BROOD_HONEY_NEEDED,(16-5+1)*(7-5+1),replace = TRUE)
+hive[5:16,5:7,4] <- sample(0:BROOD_POLLEN_NEEDED,(16-5+1)*(7-5+1),replace = TRUE)
 hive[5:7,5:16,1] <- BROOD
 hive[5:7,5:16,2] <- sample(1:MAX_BROOD,(7-5+1)*(16-5+1),replace = TRUE)
+hive[5:7,5:16,3] <- sample(0:BROOD_HONEY_NEEDED,(7-5+1)*(16-5+1),replace = TRUE)
+hive[5:7,5:16,4] <- sample(0:BROOD_POLLEN_NEEDED,(7-5+1)*(16-5+1),replace = TRUE)
 hive[14:16,5:16,1] <- BROOD
 hive[14:16,5:16,2] <- sample(1:MAX_BROOD,(16-14+1)*(16-5+1),replace = TRUE)
+hive[14:16,5:16,3] <- sample(0:BROOD_HONEY_NEEDED,(16-14+1)*(16-5+1),replace = TRUE)
+hive[14:16,5:16,4] <- sample(0:BROOD_POLLEN_NEEDED,(16-14+1)*(16-5+1),replace = TRUE)
 hive[5:16,14:16,1] <- BROOD
 hive[5:16,14:16,2] <- sample(1:MAX_BROOD,(16-5+1)*(16-14+1),replace = TRUE)
+hive[5:16,14:16,3] <- sample(0:BROOD_HONEY_NEEDED,(16-5+1)*(16-14+1),replace = TRUE)
+hive[5:16,14:16,4] <- sample(0:BROOD_POLLEN_NEEDED,(16-5+1)*(16-14+1),replace = TRUE)
 # hive[1,1,1] <- EMPTY
 # hive[1,1,2] <- 0
 
@@ -274,7 +296,7 @@ hive_matrix_to_graph(hive,bees,nurses,queen)
 colnames(hive) <- 1:MAX_COLS
 rownames(hive) <- 1:MAX_ROWS
 
-DAYS <- 5
+DAYS <- 1
 
 for(d in 1:DAYS){
 #24 hours in a day
@@ -296,8 +318,8 @@ for(d in 1:DAYS){
         queen$move()
         hive <- queen$interact_with_comb(hive)
       }
-      ggsave(paste0("hive_plots/hiveplot_",str_pad((d-1)*24*6+(h-1)*6+m, 5, pad = "0"),".png"),
-             hive_matrix_to_graph(hive,bees,nurses,queen),width=7, height=7)
+      # ggsave(paste0("hive_plots/hiveplot_",str_pad((d-1)*24*6+(h-1)*6+m, 5, pad = "0"),".png"),
+      #        hive_matrix_to_graph(hive,bees,nurses,queen),width=7, height=7)
     }
     #Then reset bees and nurses
     for(i in 1:length(bees)){
@@ -310,8 +332,13 @@ for(d in 1:DAYS){
         nurses[[i]]$honey_for_brood <- BROOD_EATEN_HONEY_BY_HOUR_BY_BEE
         nurses[[i]]$pollen_for_brood <- BROOD_EATEN_POLLEN_BY_HOUR_BY_BEE
     }
+    print(hive[,,1])
+    print(hive[,,3:4])
   }
   hive <- age_brood(hive)
+  ggsave(paste0("hive_plots/hiveplot_",str_pad((d-1)*24*6+(h-1)*6+m, 5, pad = "0"),
+                "_D",str_pad(d, 3, pad = "0"),".png"),
+             hive_matrix_to_graph(hive,bees,nurses,queen),width=7, height=7)
 }
 
 ```
@@ -320,6 +347,6 @@ Turn images into video
 ```{r}
 productPath <- ('/Users/Ben/Desktop/Bee-Simulation/hive_plots/')
 av::av_encode_video(paste0(productPath,list.files(productPath, '*.png')), framerate = 10,
-                    output = paste0("hive_videos/bee_video_D",DAYS,"_B",N_BEES,"_N",N_NURSES,"_Q",QUEEN_CELLS_PER_HOUR,".mp4"))
+                    output = paste0("hive_videos/bee_video_brood_death_D",DAYS,"_B",N_BEES,"_N",N_NURSES,"_Q",QUEEN_CELLS_PER_HOUR,".mp4"))
 ```
 
