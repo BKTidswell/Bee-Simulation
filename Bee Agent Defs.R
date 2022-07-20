@@ -224,4 +224,48 @@ Nurse <- R6Class("Nurse",
                )
 )
 
+# Nurse Definition
+Queen <- R6Class("Queen",
+                 public = list(
+                   cur_X = NULL,
+                   cur_Y = NULL,
+                   prev_X = -1,
+                   prev_Y = -1,
+                   cells_per_10 = ceiling(QUEEN_CELLS_PER_HOUR/10),
+                   initialize = function(cur_X = NA, cur_Y = NA) {
+                     self$cur_X <- cur_X
+                     self$cur_Y <- cur_Y
+                   },
+                   move = function(){
+                     next_hex <- hex_move(self$cur_X,self$cur_Y,self$prev_X,self$prev_Y)
+                     
+                     self$prev_X <- self$cur_X
+                     self$prev_Y <- self$cur_Y
+                     
+                     self$cur_X <- next_hex[1]
+                     self$cur_Y <- next_hex[2]
+                     
+                     #print(c(self$cur_X,self$cur_Y))
+                   },
+                   interact_with_comb = function(current_hive){
+                     curr_fill <- current_hive[self$cur_X,self$cur_Y,1]
+                     curr_val <- current_hive[self$cur_X,self$cur_Y,2]
+                     
+                     #If you end up on an empty hive
+                     if(curr_fill == EMPTY){
+                       current_hive[self$cur_X,self$cur_Y,1] <- BROOD
+                       current_hive[self$cur_X,self$cur_Y,2] <- 0
+                     }
+                     return(current_hive)
+                   },
+                   buzz = function(){
+                     cat(paste0("Hello, I am a nurse! I have:\n",
+                                "I want to gather for brood:\n",
+                                self$honey_for_brood, " Honey \n",
+                                self$pollen_for_brood, " Pollen \n\n",
+                                "I am at: X = ", self$cur_X, " and Y = ", self$cur_Y, ".\n"))
+                   }
+                 )
+)
+
 

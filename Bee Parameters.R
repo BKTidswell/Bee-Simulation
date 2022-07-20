@@ -3,6 +3,8 @@ MAX_HONEY <- 25
 MAX_POLLEN <- 12
 MAX_BROOD <- 21
 
+QUEEN_CELLS_PER_HOUR <- 60
+
 TOTAL_DAILY_HONEY <- 833
 
 POLLEN_RATIO <- 0.21
@@ -13,7 +15,7 @@ HONEY_CONSUMPTION_RATIO <- 0.59
 BROOD_POLLEN_CONSUMPTION_RATIO <- 0.99
 BROOD_HONEY_CONSUMPTION_RATIO <- 0.33
 
-N_BEES <- 1
+N_BEES <- 20
 N_NURSES <- 20
 
 #Only collecting during the day, eat all the time (Night and day coming later, all 12 for now)
