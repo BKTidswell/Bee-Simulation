@@ -141,7 +141,7 @@ hive_matrix_to_graph <- function(hive_data, bees, nurses,queen){
 
 ```{r}
 make_random_hive <- function(){
-  layer1 <- sample(c(EMPTY,BROOD,HONEY,POLLEN), MAX_ROWS*MAX_COLS, replace = TRUE, prob = c(1,1,1,1))
+  layer1 <- sample(c(EMPTY,BROOD,HONEY,POLLEN), MAX_ROWS*MAX_COLS, replace = TRUE, prob = c(0.1,0,1,1))
   
   rand_hive <- array(c(layer1,rep(EMPTY,MAX_ROWS*MAX_COLS)), dim = c(MAX_ROWS,MAX_COLS, 2))
   
@@ -253,15 +253,27 @@ queen <- Queen$new(sample(1:MAX_ROWS, 1), sample(1:MAX_COLS, 1))
 #hive <- array(EMPTY, dim = c(MAX_ROWS,MAX_COLS, 2))'
 hive <- make_random_hive()
 
-# hive[8:13,8:13,1] <- BROOD
-# hive[8:13,8:13,2] <- sample(1:MAX_BROOD,1)
-#hive[1,2,1] <- POLLEN
-#hive[1,2,2] <- sample(1:POLLEN,1)
+#hive[5:16,5:16,1] <- BROOD
+#hive[5:16,5:16,2] <- sample(1:MAX_BROOD,(16-5+1)*(16-5+1),replace = TRUE)
+hive[5:16,5:7,1] <- BROOD
+hive[5:16,5:7,2] <- sample(1:MAX_BROOD,(16-5+1)*(7-5+1),replace = TRUE)
+hive[5:7,5:16,1] <- BROOD
+hive[5:7,5:16,2] <- sample(1:MAX_BROOD,(7-5+1)*(16-5+1),replace = TRUE)
+hive[14:16,5:16,1] <- BROOD
+hive[14:16,5:16,2] <- sample(1:MAX_BROOD,(16-14+1)*(16-5+1),replace = TRUE)
+hive[5:16,14:16,1] <- BROOD
+hive[5:16,14:16,2] <- sample(1:MAX_BROOD,(16-5+1)*(16-14+1),replace = TRUE)
+# hive[1,1,1] <- EMPTY
+# hive[1,1,2] <- 0
+
+hive_matrix_to_graph(hive,bees,nurses,queen)
 
 colnames(hive) <- 1:MAX_COLS
 rownames(hive) <- 1:MAX_ROWS
 
-for(d in 1:30){
+DAYS <- 5
+
+for(d in 1:DAYS){
 #24 hours in a day
   for(h in 1:24){
     #Bees move 6 times and hour, then they get refilled
@@ -282,7 +294,7 @@ for(d in 1:30){
         hive <- queen$interact_with_comb(hive)
       }
       ggsave(paste0("hive_plots/hiveplot_",str_pad((d-1)*24*6+(h-1)*6+m, 5, pad = "0"),".png"),
-             hive_matrix_to_graph(hive,bees,nurses,queen))
+             hive_matrix_to_graph(hive,bees,nurses,queen),width=7, height=7)
     }
     #Then reset bees and nurses
     for(i in 1:length(bees)){
@@ -304,6 +316,7 @@ for(d in 1:30){
 Turn images into video
 ```{r}
 productPath <- ('/Users/Ben/Desktop/Bee-Simulation/hive_plots/')
-av::av_encode_video(paste0(productPath,list.files(productPath, '*.png')), framerate = 10, output = 'bee_video.mp4')
+av::av_encode_video(paste0(productPath,list.files(productPath, '*.png')), framerate = 10,
+                    output = paste0("hive_videos/bee_video_D",DAYS,"_B",N_BEES,"_N",N_NURSES,"_Q",QUEEN_CELLS_PER_HOUR,".mp4"))
 ```
 
