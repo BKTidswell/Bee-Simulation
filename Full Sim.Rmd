@@ -216,8 +216,15 @@ age_brood <- function(hive_data){
   brood_ys <- data.frame(which(hive_data[,,1] == BROOD,arr.ind = TRUE))$col
   
   for(i in 1:length(brood_xs)){
-    #If they aren't about to become max age add 1 to age
-    if(hive_data[brood_xs[i],brood_ys[i],2] < MAX_BROOD-1){
+    if(hive_data[brood_xs[i],brood_ys[i],3] < BROOD_HONEY_NEEDED || 
+       hive_data[brood_xs[i],brood_ys[i],4] < BROOD_POLLEN_NEEDED){
+      #If they didn't get enough food then empty it out
+      hive_data[brood_xs[i],brood_ys[i],1] <- EMPTY
+      hive_data[brood_xs[i],brood_ys[i],2] <- 0
+      hive_data[brood_xs[i],brood_ys[i],3] <- 0
+      hive_data[brood_xs[i],brood_ys[i],4] <- 0
+    } else if(hive_data[brood_xs[i],brood_ys[i],2] < MAX_BROOD-1){
+      #If they aren't about to become max age add 1 to age
       hive_data[brood_xs[i],brood_ys[i],2] <- hive_data[brood_xs[i],brood_ys[i],2] + 1
       hive_data[brood_xs[i],brood_ys[i],3] <- 0
       hive_data[brood_xs[i],brood_ys[i],4] <- 0
@@ -229,14 +236,7 @@ age_brood <- function(hive_data){
       hive_data[brood_xs[i],brood_ys[i],4] <- 0
     }
     
-    if(hive_data[brood_xs[i],brood_ys[i],3] < BROOD_HONEY_NEEDED || 
-       hive_data[brood_xs[i],brood_ys[i],4] < BROOD_POLLEN_NEEDED){
-      #If they didn't get enough food then empty it out
-      hive_data[brood_xs[i],brood_ys[i],1] <- EMPTY
-      hive_data[brood_xs[i],brood_ys[i],2] <- 0
-      hive_data[brood_xs[i],brood_ys[i],3] <- 0
-      hive_data[brood_xs[i],brood_ys[i],4] <- 0
-    }
+    
     
   }
  return(hive_data)
@@ -296,7 +296,7 @@ hive_matrix_to_graph(hive,bees,nurses,queen)
 colnames(hive) <- 1:MAX_COLS
 rownames(hive) <- 1:MAX_ROWS
 
-DAYS <- 1
+DAYS <- 10
 
 for(d in 1:DAYS){
 #24 hours in a day
@@ -318,8 +318,9 @@ for(d in 1:DAYS){
         queen$move()
         hive <- queen$interact_with_comb(hive)
       }
-      # ggsave(paste0("hive_plots/hiveplot_",str_pad((d-1)*24*6+(h-1)*6+m, 5, pad = "0"),".png"),
-      #        hive_matrix_to_graph(hive,bees,nurses,queen),width=7, height=7)
+      ggsave(paste0("hive_plots/hiveplot_",str_pad((d-1)*24*6+(h-1)*6+m, 5, pad = "0"),
+                "_D",str_pad(d, 3, pad = "0"),".png"),
+             hive_matrix_to_graph(hive,bees,nurses,queen),width=7, height=7)
     }
     #Then reset bees and nurses
     for(i in 1:length(bees)){
@@ -332,13 +333,11 @@ for(d in 1:DAYS){
         nurses[[i]]$honey_for_brood <- BROOD_EATEN_HONEY_BY_HOUR_BY_BEE
         nurses[[i]]$pollen_for_brood <- BROOD_EATEN_POLLEN_BY_HOUR_BY_BEE
     }
-    print(hive[,,1])
-    print(hive[,,3:4])
   }
   hive <- age_brood(hive)
-  ggsave(paste0("hive_plots/hiveplot_",str_pad((d-1)*24*6+(h-1)*6+m, 5, pad = "0"),
-                "_D",str_pad(d, 3, pad = "0"),".png"),
-             hive_matrix_to_graph(hive,bees,nurses,queen),width=7, height=7)
+  # ggsave(paste0("hive_plots/hiveplot_",str_pad((d-1)*24*6+(h-1)*6+m, 5, pad = "0"),
+  #               "_D",str_pad(d, 3, pad = "0"),".png"),
+  #            hive_matrix_to_graph(hive,bees,nurses,queen),width=7, height=7)
 }
 
 ```
