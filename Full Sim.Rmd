@@ -143,7 +143,10 @@ hive_matrix_to_graph <- function(hive_data, bees, nurses,queen){
 make_random_hive <- function(){
   layer1 <- sample(c(EMPTY,BROOD,HONEY,POLLEN), MAX_ROWS*MAX_COLS, replace = TRUE, prob = c(0.1,0,1,1))
   
-  rand_hive <- array(c(layer1,rep(EMPTY,MAX_ROWS*MAX_COLS)), dim = c(MAX_ROWS,MAX_COLS, 2))
+  #Second two rows are for brood honey and pollen
+  rand_hive <- array(c(layer1,rep(EMPTY,MAX_ROWS*MAX_COLS),
+                       rep(0,MAX_ROWS*MAX_COLS),
+                       rep(0,MAX_ROWS*MAX_COLS)), dim = c(MAX_ROWS,MAX_COLS, 4))
   
   for(x in 1:MAX_ROWS){
     for(y in 1:MAX_COLS){

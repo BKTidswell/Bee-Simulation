@@ -169,6 +169,8 @@ Nurse <- R6Class("Nurse",
                  interact_with_comb = function(current_hive){
                    curr_fill <- current_hive[self$cur_X,self$cur_Y,1]
                    curr_val <- current_hive[self$cur_X,self$cur_Y,2]
+                   curr_brood_honey <- current_hive[self$cur_X,self$cur_Y,3]
+                   curr_brood_pollen <- current_hive[self$cur_X,self$cur_Y,4]
                    
                    #If you end up on honey deposit
                    if(curr_fill == HONEY){
@@ -209,8 +211,25 @@ Nurse <- R6Class("Nurse",
                      }
                    } else if(curr_fill == BROOD){
                      #Later we might keep track, but for now we'll just say feed it and get more 
-                     self$honey_for_brood <- BROOD_EATEN_HONEY_BY_HOUR_BY_BEE
-                     self$pollen_for_brood <- BROOD_EATEN_POLLEN_BY_HOUR_BY_BEE
+                     #It's later and we're going to keep track. Honey in layer 3, pollen layer 4
+                     if(self$honey_for_brood > 0 && curr_brood_honey < BROOD_EATEN_HONEY_BY_HOUR_BY_BEE){
+                       #If you can add it all do it, otherwise only add part
+                       if (curr_brood_honey + self$honey_for_brood <= BROOD_EATEN_HONEY_BY_HOUR_BY_BEE){
+                         current_hive[self$cur_X,self$cur_Y,3] <- curr_brood_honey + self$honey_for_brood
+                         self$honey_for_brood <- 0
+                       } else{
+                         current_hive[self$cur_X,self$cur_Y,3] <- BROOD_EATEN_HONEY_BY_HOUR_BY_BEE
+                         self$honey_for_brood <- self$honey_for_brood - (BROOD_EATEN_HONEY_BY_HOUR_BY_BEE - curr_brood_honey)
+                       }
+                       #If you can add it all do it, otherwise only add part
+                     if (curr_brood_pollen + self$pollen_for_brood <= BROOD_EATEN_POLLEN_BY_HOUR_BY_BEE){
+                         current_hive[self$cur_X,self$cur_Y,4] <- curr_brood_pollen + self$pollen_for_brood
+                         self$pollen_for_brood <- 0
+                       } else{
+                         current_hive[self$cur_X,self$cur_Y,4] <- BROOD_EATEN_POLLEN_BY_HOUR_BY_BEE
+                         self$pollen_for_brood <- self$pollen_for_brood - (BROOD_EATEN_POLLEN_BY_HOUR_BY_BEE - curr_brood_pollen)
+                       }
+                     }
                    }
                    return(current_hive)
                  },
