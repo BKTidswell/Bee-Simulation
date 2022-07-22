@@ -67,7 +67,7 @@ This takes a given hive and turns it into a graph
 ```{r Hive to Graph}
 
 hive_matrix_to_graph <- function(hive_data,queen){
-  hive_tbl <- as.table(hive_data[,,1:2])
+  hive_tbl <- as.table(hive[,,1:2])
   colnames(hive_tbl) <- 1:MAX_COLS
   rownames(hive_tbl) <- 1:MAX_ROWS
   hive_df_pre <- as.data.frame(hive_tbl)
@@ -121,11 +121,11 @@ make_random_hive <- function(){
                        rep(0,MAX_ROWS*MAX_COLS),
                        rep(0,MAX_ROWS*MAX_COLS)), dim = c(MAX_ROWS,MAX_COLS, 4))
   
-  for(x in 1:MAX_ROWS){
-    for(y in 1:MAX_COLS){
-      layer2_val <- ifelse(rand_hive[x,y,1] == BROOD, sample(1:MAX_BROOD, 1),
-                          ifelse(rand_hive[x,y,1] == HONEY, sample(1:MAX_HONEY,1),
-                                 ifelse(rand_hive[x,y,1] == POLLEN, sample(1:MAX_POLLEN,1),
+  for(x in 1:MAX_COLS){
+    for(y in 1:MAX_ROWS){
+      layer2_val <- ifelse(rand_hive[y,x,1] == BROOD, sample(1:MAX_BROOD, 1),
+                          ifelse(rand_hive[y,x,1] == HONEY, sample(1:MAX_HONEY,1),
+                                 ifelse(rand_hive[y,x,1] == POLLEN, sample(1:MAX_POLLEN,1),
                                         0)))
       rand_hive[x,y,2] <- layer2_val
     }
@@ -220,8 +220,8 @@ Something is wrong with the way I treat x and y here and I do hate it, but I'll 
 NECTER_CONSUMP_RAD <- 4
 
 get_brood_density <- function(x_ind,y_ind,hive_data){
-  xLoc <- (hexdat_centers %>% filter(Xind == y_ind, Yind == x_ind))$x
-  yLoc <- (hexdat_centers %>% filter(Xind == y_ind, Yind == x_ind))$y
+  xLoc <- (hexdat_centers %>% filter(Xind == x_ind, Yind == y_ind))$x
+  yLoc <- (hexdat_centers %>% filter(Xind == x_ind, Yind == y_ind))$y
   
   hex_dist <- hexdat_centers %>% mutate(dist = sqrt((xLoc-x)**2+(yLoc-y)**2))
   
@@ -259,29 +259,29 @@ make_set_hive <- function(){
   all_to_pollen <- hexes_in_rad(MAX_X/2,MAX_Y/2,BROOD_RADIUS+POLLEN_WIDTH)
   
   for(i in 1:length(all_to_pollen[[1]])){
-    x <- all_to_pollen[[2]][i]
-    y <- all_to_pollen[[1]][i]
-    set_hive[x,y,1] <- POLLEN
+    x <- all_to_pollen[[1]][i]
+    y <- all_to_pollen[[2]][i]
+    set_hive[y,x,1] <- POLLEN
   }
   
   all_to_brood <- hexes_in_rad(MAX_X/2,MAX_Y/2,BROOD_RADIUS)
   
   for(i in 1:length(all_to_brood[[1]])){
-    x <- all_to_brood[[2]][i]
-    y <- all_to_brood[[1]][i]
-    set_hive[x,y,1] <- BROOD
+    x <- all_to_brood[[1]][i]
+    y <- all_to_brood[[2]][i]
+    set_hive[y,x,1] <- BROOD
   }
   
-  for(x in 1:MAX_ROWS){
-    for(y in 1:MAX_COLS){
-      layer2_val <- ifelse(set_hive[x,y,1] == BROOD, sample(1:MAX_BROOD, 1),
-                          ifelse(set_hive[x,y,1] == HONEY, sample(1:MAX_HONEY,1),
-                                 ifelse(set_hive[x,y,1] == POLLEN, sample(1:MAX_POLLEN,1),
+  for(x in 1:MAX_COLS){
+    for(y in 1:MAX_ROWS){
+      layer2_val <- ifelse(set_hive[y,x,1] == BROOD, sample(1:MAX_BROOD, 1),
+                          ifelse(set_hive[y,x,1] == HONEY, sample(1:MAX_HONEY,1),
+                                 ifelse(set_hive[y,x,1] == POLLEN, sample(1:MAX_POLLEN,1),
                                         0)))
-      layer3_val <- ifelse(set_hive[x,y,1] == BROOD, sample(1:24, 1), 0)
+      layer3_val <- ifelse(set_hive[y,x,1] == BROOD, sample(1:24, 1), 0)
       
-      set_hive[x,y,2] <- layer2_val
-      set_hive[x,y,3] <- layer3_val
+      set_hive[y,x,2] <- layer2_val
+      set_hive[y,x,3] <- layer3_val
     }
   }
   
@@ -297,15 +297,15 @@ N_ATTEMPTS <- 6
 
 collect_products <- function(hive_data,product,product_max){
   for(i in 1:N_ATTEMPTS){
-    rand_x <- sample(1:MAX_ROWS,1)
-    rand_y <- sample(1:MAX_COLS,1)
+    rand_x <- sample(1:MAX_COLS,1)
+    rand_y <- sample(1:MAX_ROWS,1)
     
-    if(hive_data[rand_x,rand_y,1] == product && hive_data[rand_x,rand_y,2] < product_max){
-      hive_data[rand_x,rand_y,2] <- hive_data[rand_x,rand_y,2] + 1
+    if(hive_data[rand_y,rand_x,1] == product && hive_data[rand_y,rand_x,2] < product_max){
+      hive_data[rand_y,rand_x,2] <- hive_data[rand_y,rand_x,2] + 1
       break
-    } else if(hive_data[rand_x,rand_y,1] == EMPTY){
-      hive_data[rand_x,rand_y,1] <- product
-      hive_data[rand_x,rand_y,2] <- 1
+    } else if(hive_data[rand_y,rand_x,1] == EMPTY){
+      hive_data[rand_y,rand_x,1] <- product
+      hive_data[rand_y,rand_x,2] <- 1
       break
     }
   }
@@ -323,14 +323,14 @@ k <- 10
 
 eat_products <- function(hive_data,product){
   for(i in 1:N_ATTEMPTS){
-    rand_x <- sample(1:MAX_ROWS,1)
-    rand_y <- sample(1:MAX_COLS,1)
+    rand_x <- sample(1:MAX_COLS,1)
+    rand_y <- sample(1:MAX_ROWS,1)
     
-    if(hive_data[rand_x,rand_y,1] == product){
-      hive_data[rand_x,rand_y,2] <- hive_data[rand_x,rand_y,2] - min(hive_data[rand_x,rand_y,2],
+    if(hive_data[rand_y,rand_x,1] == product){
+      hive_data[rand_y,rand_x,2] <- hive_data[rand_y,rand_x,2] - min(hive_data[rand_y,rand_x,2],
                                                                      1 + get_brood_density(rand_x,rand_y,hive_data)*(k-1))
-      if(hive_data[rand_x,rand_y,2] == 0){
-        hive_data[rand_x,rand_y,1] <- EMPTY
+      if(hive_data[rand_y,rand_x,2] == 0){
+        hive_data[rand_y,rand_x,1] <- EMPTY
       }
       break
     }
@@ -347,11 +347,11 @@ For Brood Aging
 # We don't hatch them here, we hatch them hourly
 age_brood <- function(hive_data){
   #Get the x and y of all brood
-  brood_xs <- data.frame(which(hive_data[,,1] == BROOD,arr.ind = TRUE))$row
-  brood_ys <- data.frame(which(hive_data[,,1] == BROOD,arr.ind = TRUE))$col
+  brood_xs <- data.frame(which(hive_data[,,1] == BROOD,arr.ind = TRUE))$col
+  brood_ys <- data.frame(which(hive_data[,,1] == BROOD,arr.ind = TRUE))$row
   
   for(i in 1:length(brood_xs)){
-    hive_data[brood_xs[i],brood_ys[i],2] <- hive_data[brood_xs[i],brood_ys[i],2] + 1
+    hive_data[brood_ys[i],brood_xs[i],2] <- hive_data[brood_ys[i],brood_xs[i],2] + 1
   }
  return(hive_data)
 }
@@ -362,14 +362,14 @@ Determines brood hatching
 ```{r Brood Hatching}
 
 hatch_brood <- function(hive_data,hour){
-  hatch_x <- data.frame(which(hive_data[,,1] == BROOD & hive_data[,,2] >= MAX_BROOD & hive_data[,,3] == hour,arr.ind = TRUE))$row
-  hatch_y <- data.frame(which(hive_data[,,1] == BROOD & hive_data[,,2] >= MAX_BROOD & hive_data[,,3] == hour,arr.ind = TRUE))$col
+  hatch_x <- data.frame(which(hive_data[,,1] == BROOD & hive_data[,,2] >= MAX_BROOD & hive_data[,,3] == hour,arr.ind = TRUE))$col
+  hatch_y <- data.frame(which(hive_data[,,1] == BROOD & hive_data[,,2] >= MAX_BROOD & hive_data[,,3] == hour,arr.ind = TRUE))$row
   
   #Hatch all brood that hatch this hour
   for(i in 1:length(hatch_x)){
-    hive_data[hatch_x[i],hatch_y[i],1] <- EMPTY
-    hive_data[hatch_x[i],hatch_y[i],2] <- 0
-    hive_data[hatch_x[i],hatch_y[i],3] <- 0
+    hive_data[hatch_y[i],hatch_x[i],1] <- EMPTY
+    hive_data[hatch_y[i],hatch_x[i],2] <- 0
+    hive_data[hatch_y[i],hatch_x[i],3] <- 0
   }
   
   return(hive_data)
