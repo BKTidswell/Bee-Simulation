@@ -253,16 +253,34 @@ make_set_hive <- function(){
   return(set_hive)
 }
 
-#hive <- array(rep(0,MAX_ROWS*MAX_COLS*2), dim = c(MAX_ROWS,MAX_COLS, 2))
-#hive[40,25,1] <- BROOD
 hive <- make_set_hive()
 hive_matrix_to_graph(hive,c())
 
 ```
 
+For adding products by the worker bees
+```{r}
+
+N_ATTEMPTS <- 6
+
+collect_products <- function(hive_data,product,product_max){
+  for(i in 1:N_ATTEMPTS){
+    rand_x <- sample(1:MAX_ROWS,1)
+    rand_y <- sample(1:MAX_COLS,1)
+    
+    if(hive_data[rand_x,rand_y,1] == product && hive_data[rand_x,rand_y,2] < product_max){
+      hive_data[rand_x,rand_y,2] <- hive_data[rand_x,rand_y,2] + 1
+      break
+    }
+  }
+  return(hive_data)
+}
+
+```
+
 
 For Brood Aging
-```{r}
+```{r Brood Aging}
 
 age_brood <- function(hive_data){
   #Get the x and y of all brood
@@ -290,4 +308,37 @@ age_brood <- function(hive_data){
 
 
 
+```{r Run Simulation}
+hive <- make_set_hive()
 
+DAYS <- 5
+
+for(d in 1:DAYS){
+#24 hours in a day
+  for(h in 1:24){
+    #Bees move 6 times and hour
+    for(m in 1:6){
+        #Now add the right amount of products
+        for(i in 1:HONEY_BY_HOUR){
+          hive <- collect_products(hive,HONEY,MAX_HONEY)
+        }
+        for(i in 1:POLLEN_BY_HOUR){
+          hive <- collect_products(hive,POLLEN,MAX_POLLEN)
+        }
+      }
+    ggsave(paste0("hive_plots/hiveplot_",str_pad((d-1)*24*6+(h-1)*6+m, 5, pad = "0"),
+                  "_D",str_pad(d, 3, pad = "0"),".png"),
+           hive_matrix_to_graph(hive,c()),width=7, height=7)
+  }
+  #hive <- age_brood(hive)
+}
+
+```
+
+
+Turn images into video
+```{r Images to Video}
+productPath <- ('/Users/Ben/Desktop/Bee-Simulation/hive_plots/')
+av::av_encode_video(paste0(productPath,list.files(productPath, '*.png')), framerate = 10,
+                    output = paste0("hive_videos/bee_video_brood_death_D",DAYS,"_B",N_BEES,"_N",N_NURSES,"_Q",QUEEN_CELLS_PER_HOUR,".mp4"))
+```
