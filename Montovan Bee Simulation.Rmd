@@ -211,6 +211,36 @@ hexes_nearest_contents <- function(xLoc,yLoc,content,hive_data){
   return(c(new_hex_dist$Xind[1],new_hex_dist$Yind[1]))
 }
 ```
+
+Brood Density Calculation
+
+Something is wrong with the way I treat x and y here and I do hate it, but I'll fix it later. For now they are swapped
+```{r Get Brood Density}
+
+NECTER_CONSUMP_RAD <- 4
+
+get_brood_density <- function(x_ind,y_ind,hive_data){
+  xLoc <- (hexdat_centers %>% filter(Xind == y_ind, Yind == x_ind))$x
+  yLoc <- (hexdat_centers %>% filter(Xind == y_ind, Yind == x_ind))$y
+  
+  hex_dist <- hexdat_centers %>% mutate(dist = sqrt((xLoc-x)**2+(yLoc-y)**2))
+  
+  hive_df <- as.data.frame(as.table(hive_data[,,1:2])) %>% pivot_wider(names_from = Var3, values_from = Freq)
+  colnames(hive_df) <- c("x","y","contents","amount")
+  hive_df <- hive_df %>% mutate(id = 1:(MAX_COLS*MAX_ROWS))
+  
+  new_hex_dist <- full_join(hex_dist,
+                            hive_df %>% select(id,contents),
+                            by="id") %>% filter(contents == BROOD) %>% filter(dist < NECTER_CONSUMP_RAD)
+  
+  distance_to_all_brood <- sum(new_hex_dist$dist)
+  
+  return(distance_to_all_brood/(3*NECTER_CONSUMP_RAD*(NECTER_CONSUMP_RAD+1)))
+}
+
+```
+
+
 To set up the hive
 
 "Unless specified, each model run was initiated with a completely full comb with an ideal pattern of a center region of brood, surrounded by a ring of pollen, and honey in all remaining cells. The assignment of type to each cell is deterministic and constant across all simulations. The brood region is a circular disk centered in the middle of the comb with radius 18 cell lengths. Around this brood region is a ring of pollen 4 cell lengths wide. The rest of the comb is filled with honey."
@@ -222,7 +252,9 @@ make_set_hive <- function(){
   POLLEN_WIDTH <- 4
   
   #Second two rows are for brood honey and pollen
-  set_hive <- array(rep(HONEY,MAX_ROWS*MAX_COLS*2), dim = c(MAX_ROWS,MAX_COLS, 2))
+  set_hive <- array(c(rep(HONEY,MAX_ROWS*MAX_COLS),
+                      rep(0,MAX_ROWS*MAX_COLS*2)),
+                    dim = c(MAX_ROWS,MAX_COLS, 3))
   
   all_to_pollen <- hexes_in_rad(MAX_X/2,MAX_Y/2,BROOD_RADIUS+POLLEN_WIDTH)
   
@@ -246,20 +278,20 @@ make_set_hive <- function(){
                           ifelse(set_hive[x,y,1] == HONEY, sample(1:MAX_HONEY,1),
                                  ifelse(set_hive[x,y,1] == POLLEN, sample(1:MAX_POLLEN,1),
                                         0)))
+      layer3_val <- ifelse(set_hive[x,y,1] == BROOD, sample(1:24, 1), 0)
+      
       set_hive[x,y,2] <- layer2_val
+      set_hive[x,y,3] <- layer3_val
     }
   }
   
   return(set_hive)
 }
 
-hive <- make_set_hive()
-hive_matrix_to_graph(hive,c())
-
 ```
 
 For adding products by the worker bees
-```{r}
+```{r collecting honey and pollen}
 
 N_ATTEMPTS <- 6
 
@@ -270,6 +302,36 @@ collect_products <- function(hive_data,product,product_max){
     
     if(hive_data[rand_x,rand_y,1] == product && hive_data[rand_x,rand_y,2] < product_max){
       hive_data[rand_x,rand_y,2] <- hive_data[rand_x,rand_y,2] + 1
+      break
+    } else if(hive_data[rand_x,rand_y,1] == EMPTY){
+      hive_data[rand_x,rand_y,1] <- product
+      hive_data[rand_x,rand_y,2] <- 1
+      break
+    }
+  }
+  return(hive_data)
+}
+
+```
+
+For Eating Pollen and Honey
+
+Here k is the Ratio of honey/pollen taken from cells fully surrounded by brood cells to honey/pollen taken from cells with no brood neighbors (dimensionless)
+```{r}
+
+k <- 10
+
+eat_products <- function(hive_data,product){
+  for(i in 1:N_ATTEMPTS){
+    rand_x <- sample(1:MAX_ROWS,1)
+    rand_y <- sample(1:MAX_COLS,1)
+    
+    if(hive_data[rand_x,rand_y,1] == product){
+      hive_data[rand_x,rand_y,2] <- hive_data[rand_x,rand_y,2] - min(hive_data[rand_x,rand_y,2],
+                                                                     1 + get_brood_density(rand_x,rand_y,hive_data)*(k-1))
+      if(hive_data[rand_x,rand_y,2] == 0){
+        hive_data[rand_x,rand_y,1] <- EMPTY
+      }
       break
     }
   }
@@ -282,55 +344,78 @@ collect_products <- function(hive_data,product,product_max){
 For Brood Aging
 ```{r Brood Aging}
 
+# We don't hatch them here, we hatch them hourly
 age_brood <- function(hive_data){
   #Get the x and y of all brood
   brood_xs <- data.frame(which(hive_data[,,1] == BROOD,arr.ind = TRUE))$row
   brood_ys <- data.frame(which(hive_data[,,1] == BROOD,arr.ind = TRUE))$col
   
   for(i in 1:length(brood_xs)){
-    if(hive_data[brood_xs[i],brood_ys[i],2] < MAX_BROOD-1){
-      #If they aren't about to become max age add 1 to age
-      hive_data[brood_xs[i],brood_ys[i],2] <- hive_data[brood_xs[i],brood_ys[i],2] + 1
-      hive_data[brood_xs[i],brood_ys[i],3] <- 0
-      hive_data[brood_xs[i],brood_ys[i],4] <- 0
-    } else{
-      #If they are then empty it out
-      hive_data[brood_xs[i],brood_ys[i],1] <- EMPTY
-      hive_data[brood_xs[i],brood_ys[i],2] <- 0
-      hive_data[brood_xs[i],brood_ys[i],3] <- 0
-      hive_data[brood_xs[i],brood_ys[i],4] <- 0
-    }
+    hive_data[brood_xs[i],brood_ys[i],2] <- hive_data[brood_xs[i],brood_ys[i],2] + 1
   }
  return(hive_data)
 }
 
 ```
 
+Determines brood hatching
+```{r Brood Hatching}
+
+hatch_brood <- function(hive_data,hour){
+  hatch_x <- data.frame(which(hive_data[,,1] == BROOD & hive_data[,,2] >= MAX_BROOD & hive_data[,,3] == hour,arr.ind = TRUE))$row
+  hatch_y <- data.frame(which(hive_data[,,1] == BROOD & hive_data[,,2] >= MAX_BROOD & hive_data[,,3] == hour,arr.ind = TRUE))$col
+  
+  #Hatch all brood that hatch this hour
+  for(i in 1:length(hatch_x)){
+    hive_data[hatch_x[i],hatch_y[i],1] <- EMPTY
+    hive_data[hatch_x[i],hatch_y[i],2] <- 0
+    hive_data[hatch_x[i],hatch_y[i],3] <- 0
+  }
+  
+  return(hive_data)
+}
+
+```
 
 
-```{r Run Simulation}
+### Hive levels
+1. Contents (Honey, Pollen, Brood, Empty)
+2. Amount (For Brood it's the age)
+3. Brood hourly hatching cohort
+
+```{r Run Simulation, warning = FALSE}
 hive <- make_set_hive()
 
-DAYS <- 5
+DAYS <- 10
 
 for(d in 1:DAYS){
 #24 hours in a day
   for(h in 1:24){
-    #Bees move 6 times and hour
-    for(m in 1:6){
-        #Now add the right amount of products
-        for(i in 1:HONEY_BY_HOUR){
-          hive <- collect_products(hive,HONEY,MAX_HONEY)
-        }
-        for(i in 1:POLLEN_BY_HOUR){
-          hive <- collect_products(hive,POLLEN,MAX_POLLEN)
-        }
-      }
-    ggsave(paste0("hive_plots/hiveplot_",str_pad((d-1)*24*6+(h-1)*6+m, 5, pad = "0"),
+    #Now add the right amount of products
+    for(i in 1:HONEY_BY_HOUR){
+      hive <- collect_products(hive,HONEY,MAX_HONEY)
+    }
+    for(i in 1:POLLEN_BY_HOUR){
+      hive <- collect_products(hive,POLLEN,MAX_POLLEN)
+    }
+    
+    #Now we hatch the bees
+    hive <- hatch_brood(hive,h)
+    
+    #Now we have bees eat
+    for(i in 1:HONEY_EATEN_PER_HOUR){
+      hive <- eat_products(hive,HONEY)
+    }
+    for(i in 1:POLLEN_EATEN_PER_HOUR){
+      hive <- eat_products(hive,POLLEN)
+    }
+    
+    #Now graph for that hour
+    ggsave(paste0("hive_plots/hiveplot_",str_pad((d-1)*24+h, 5, pad = "0"),
                   "_D",str_pad(d, 3, pad = "0"),".png"),
            hive_matrix_to_graph(hive,c()),width=7, height=7)
   }
-  #hive <- age_brood(hive)
+  hive <- age_brood(hive)
 }
 
 ```
@@ -340,5 +425,17 @@ Turn images into video
 ```{r Images to Video}
 productPath <- ('/Users/Ben/Desktop/Bee-Simulation/hive_plots/')
 av::av_encode_video(paste0(productPath,list.files(productPath, '*.png')), framerate = 10,
-                    output = paste0("hive_videos/bee_video_brood_death_D",DAYS,"_B",N_BEES,"_N",N_NURSES,"_Q",QUEEN_CELLS_PER_HOUR,".mp4"))
+                    output = paste0("hive_videos/bee_video_only_eat_D",DAYS,"_H",HONEY_BY_HOUR,
+                                    "_P",POLLEN_BY_HOUR,"_Q",QUEEN_CELLS_PER_HOUR,".mp4"))
 ```
+
+
+```{r}
+
+consumption_tibble <- tibble(xVal = sample(1:MAX_COLS,1000,replace = TRUE),
+                             yVal = sample(1:MAX_ROWS,1000,replace = TRUE))
+  
+consumption_tibble <- consumption_tibble %>% mutate(eaten = 1 + get_brood_density(yVal,xVal,hive)*(k-1))
+
+```
+
