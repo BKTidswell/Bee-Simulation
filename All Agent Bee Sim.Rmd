@@ -296,7 +296,7 @@ hive_matrix_to_graph(hive,bees,nurses,queen)
 colnames(hive) <- 1:MAX_COLS
 rownames(hive) <- 1:MAX_ROWS
 
-DAYS <- 10
+DAYS <- 5
 
 for(d in 1:DAYS){
 #24 hours in a day
@@ -318,9 +318,9 @@ for(d in 1:DAYS){
         queen$move()
         hive <- queen$interact_with_comb(hive)
       }
-      ggsave(paste0("hive_plots/hiveplot_",str_pad((d-1)*24*6+(h-1)*6+m, 5, pad = "0"),
-                "_D",str_pad(d, 3, pad = "0"),".png"),
-             hive_matrix_to_graph(hive,bees,nurses,queen),width=7, height=7)
+      # ggsave(paste0("hive_plots/hiveplot_",str_pad((d-1)*24*6+(h-1)*6+m, 5, pad = "0"),
+      #           "_D",str_pad(d, 3, pad = "0"),".png"),
+      #        hive_matrix_to_graph(hive,bees,nurses,queen),width=7, height=7)
     }
     #Then reset bees and nurses
     for(i in 1:length(bees)){
@@ -333,6 +333,9 @@ for(d in 1:DAYS){
         nurses[[i]]$honey_for_brood <- BROOD_EATEN_HONEY_BY_HOUR_BY_BEE
         nurses[[i]]$pollen_for_brood <- BROOD_EATEN_POLLEN_BY_HOUR_BY_BEE
     }
+    ggsave(paste0("hive_plots/hiveplot_",str_pad((d-1)*24*6+(h-1)*6+m, 5, pad = "0"),
+                  "_D",str_pad(d, 3, pad = "0"),".png"),
+           hive_matrix_to_graph(hive,bees,nurses,queen),width=7, height=7)
   }
   hive <- age_brood(hive)
   # ggsave(paste0("hive_plots/hiveplot_",str_pad((d-1)*24*6+(h-1)*6+m, 5, pad = "0"),
