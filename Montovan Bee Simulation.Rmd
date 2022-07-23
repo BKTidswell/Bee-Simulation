@@ -427,41 +427,55 @@ print(paste0("Day ",d))
 #24 hours in a day
   for(h in 1:24){
     
-    #only collect during the day
-    if(h <= 12){
-      #Now add the right amount of products
-      for(i in 1:HONEY_BY_HOUR){
-        hive <- collect_products(hive,HONEY,MAX_HONEY)
+    #This is to give the actions a random order
+    # 1: Collect
+    # 2: Eat
+    # 3: Lay eggs
+    # 4: Brood Hatch
+    order <- sample(1:4,4)
+    
+    for(o in order){
+      
+      if(o == 1){
+        #only collect during the day
+        if(h <= 12){
+          #Now add the right amount of products
+          for(i in 1:HONEY_BY_HOUR){
+            hive <- collect_products(hive,HONEY,MAX_HONEY)
+          }
+          for(i in 1:POLLEN_BY_HOUR){
+            hive <- collect_products(hive,POLLEN,MAX_POLLEN)
+          }
+        }
+      } else if(o == 2){
+          #Now we have bees eat
+          honey_eaten <- 0
+          pollen_eaten <- 0
+          
+          #We want to make sure that they don't eat more than they should
+          # to keep it balanced
+          while(honey_eaten < HONEY_EATEN_PER_HOUR){
+            eating_output <- eat_products(hive,HONEY)
+            hive <- eating_output[[1]]
+            honey_eaten <- honey_eaten + eating_output[[2]]
+          }
+          while(pollen_eaten < POLLEN_EATEN_PER_HOUR){
+            eating_output <- eat_products(hive,POLLEN)
+            hive <- eating_output[[1]]
+            pollen_eaten <- pollen_eaten + eating_output[[2]]
+          }
+      } else if(o == 3){
+          #And then we have the queen lay brood
+          for(i in 1:QUEEN_CELLS_PER_HOUR){
+            queen$move()
+            hive <- queen$interact_with_comb(hive)
+          }
+      } else if(o == 4){
+          #Now we hatch the bees
+          hive <- hatch_brood(hive,h)
       }
-      for(i in 1:POLLEN_BY_HOUR){
-        hive <- collect_products(hive,POLLEN,MAX_POLLEN)
-      }
-    }
-    
-    #Now we hatch the bees
-    hive <- hatch_brood(hive,h)
-    
-    #Now we have bees eat
-    honey_eaten <- 0
-    pollen_eaten <- 0
-    
-    #We want to make sure that they don't eat more than they should
-    # to keep it balanced
-    while(honey_eaten < HONEY_EATEN_PER_HOUR){
-      eating_output <- eat_products(hive,HONEY)
-      hive <- eating_output[[1]]
-      honey_eaten <- honey_eaten + eating_output[[2]]
-    }
-    while(pollen_eaten < POLLEN_EATEN_PER_HOUR){
-      eating_output <- eat_products(hive,POLLEN)
-      hive <- eating_output[[1]]
-      pollen_eaten <- pollen_eaten + eating_output[[2]]
-    }
-    
-    #And then we have the queen lay brood
-    for(i in 1:QUEEN_CELLS_PER_HOUR){
-      queen$move()
-      hive <- queen$interact_with_comb(hive)
+      
+      
     }
     
     #Now graph for that hour
