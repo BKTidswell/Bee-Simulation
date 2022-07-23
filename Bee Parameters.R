@@ -18,6 +18,8 @@ HONEY_CONSUMPTION_RATIO <- 0.95
 HONEY_BY_HOUR <- ceiling(TOTAL_DAILY_HONEY/12)
 POLLEN_BY_HOUR <- ceiling((TOTAL_DAILY_HONEY*POLLEN_RATIO)/12)
 
+#There is a balancing ratio of 8 since the bees on average eat a stock of 8 using the model 1 calculations
+
 HONEY_EATEN_PER_HOUR <- ceiling((TOTAL_DAILY_HONEY*HONEY_CONSUMPTION_RATIO)/24)
 POLLEN_EATEN_PER_HOUR <- ceiling((TOTAL_DAILY_HONEY*POLLEN_RATIO*POLLEN_CONSUMPTION_RATIO)/24)
 

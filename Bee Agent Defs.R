@@ -245,7 +245,7 @@ Nurse <- R6Class("Nurse",
                )
 )
 
-# Nurse Definition
+# Queen Definition
 Queen <- R6Class("Queen",
                  public = list(
                    cur_X = NULL,
@@ -280,10 +280,7 @@ Queen <- R6Class("Queen",
                      return(current_hive)
                    },
                    buzz = function(){
-                     cat(paste0("Hello, I am a nurse! I have:\n",
-                                "I want to gather for brood:\n",
-                                self$honey_for_brood, " Honey \n",
-                                self$pollen_for_brood, " Pollen \n\n",
+                     cat(paste0("Hello, I am a quuen!\n",
                                 "I am at: X = ", self$cur_X, " and Y = ", self$cur_Y, ".\n"))
                    }
                  )
