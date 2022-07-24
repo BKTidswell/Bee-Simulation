@@ -21,7 +21,6 @@ EMPTY <- 0
 MAX_ROWS <- 75
 MAX_COLS <- 45
 
-source("Bee Parameters.R")
 ```
 
 Makes the beehive graph framework
@@ -86,27 +85,10 @@ hive_matrix_to_graph <- function(hive_data,queen){
   new_hexdat <- new_hexdat %>% mutate(amount = ifelse(named_content == "Honey",amount/MAX_HONEY,
                                                       ifelse(named_content == "Pollen",amount/MAX_POLLEN,
                                                              ifelse(named_content == "Brood",amount/MAX_BROOD,1))))
-  
-  #Adding Queen to the Graph
-  # queen_locs <- matrix(EMPTY,MAX_ROWS,MAX_COLS)
-  # 
-  # queen_locs[queen$cur_Y,queen$cur_X] <- 1
-  # 
-  # colnames(queen_locs) <- 1:MAX_COLS
-  # rownames(queen_locs) <- 1:MAX_ROWS
-  # 
-  # queen_locs <- as.data.frame(as.table(queen_locs))
-  # 
-  # colnames(queen_locs) <- c("col","row","is_bee")
-  # queen_locs <- queen_locs %>% mutate(id = 1:(MAX_COLS*MAX_ROWS))
-  # 
-  # new_queen_locs <- full_join(hexdat_centers,queen_locs,by = "id") %>% filter(is_bee == 1)
                             
   g <- ggplot() + 
         geom_polygon(new_hexdat, mapping = aes(x,y,group = id, fill = named_content, alpha = amount), colour = "black") +
         scale_fill_manual(values=hive_colors) +
-        # geom_point(new_queen_locs, mapping = aes(x,y), color = "black", size = 2) +
-        # geom_point(new_queen_locs, mapping = aes(x,y), color = "yellow", size = 1) +
         coord_fixed() +
         theme_classic()
   
@@ -201,8 +183,6 @@ Brood Density Calculation
 
 ```{r Get Brood Density}
 
-NECTER_CONSUMP_RAD <- 4
-
 get_brood_density <- function(x_ind,y_ind,hive_data){
   xLoc <- (hexdat_centers %>% filter(Xind == x_ind, Yind == y_ind))$x
   yLoc <- (hexdat_centers %>% filter(Xind == x_ind, Yind == y_ind))$y
@@ -274,6 +254,43 @@ make_set_hive <- function(){
 
 ```
 
+This makes the nearly empty hive setup
+```{r Nearly Empty Hive Setup}
+
+make_empty_hive <- function(){
+  BROOD_RADIUS <- 1.5
+
+  #Second two rows are for brood honey and pollen
+  set_hive <- array(c(rep(EMPTY,MAX_ROWS*MAX_COLS),
+                      rep(0,MAX_ROWS*MAX_COLS*2)),
+                    dim = c(MAX_ROWS,MAX_COLS, 3))
+  
+  all_to_brood <- hexes_in_rad(MAX_X/2+0.75,MAX_Y/2+1,BROOD_RADIUS)
+  
+  for(i in 1:length(all_to_brood[[1]])){
+    x <- all_to_brood[[1]][i]
+    y <- all_to_brood[[2]][i]
+    set_hive[y,x,1] <- BROOD
+  }
+  
+  for(x in 1:MAX_COLS){
+    for(y in 1:MAX_ROWS){
+      layer2_val <- ifelse(set_hive[y,x,1] == BROOD, sample(1:MAX_BROOD, 1),
+                          ifelse(set_hive[y,x,1] == HONEY, sample(1:MAX_HONEY,1),
+                                 ifelse(set_hive[y,x,1] == POLLEN, sample(1:MAX_POLLEN,1),
+                                        0)))
+      layer3_val <- ifelse(set_hive[y,x,1] == BROOD, sample(1:24, 1), 0)
+      
+      set_hive[y,x,2] <- layer2_val
+      set_hive[y,x,3] <- layer3_val
+    }
+  }
+  
+  return(set_hive)
+}
+
+```
+
 For adding products by the worker bees
 ```{r collecting honey and pollen}
 
@@ -303,8 +320,6 @@ For Eating Pollen and Honey
 Here k is the Ratio of honey/pollen taken from cells fully surrounded by brood cells to honey/pollen taken from cells with no brood neighbors (dimensionless)
 ```{r}
 
-k <- 10
-
 eat_products <- function(hive_data,product){
   amount_to_eat <- 0
   
@@ -313,7 +328,7 @@ eat_products <- function(hive_data,product){
     rand_y <- sample(1:MAX_ROWS,1)
     
     if(hive_data[rand_y,rand_x,1] == product){
-      amount_to_eat <- min(hive_data[rand_y,rand_x,2], 1 + get_brood_density(rand_x,rand_y,hive_data)*(k-1))
+      amount_to_eat <- min(hive_data[rand_y,rand_x,2], 1 + get_brood_density(rand_x,rand_y,hive_data)*(K-1))
       
       hive_data[rand_y,rand_x,2] <- hive_data[rand_y,rand_x,2] - amount_to_eat
       if(hive_data[rand_y,rand_x,2] == 0){
@@ -415,11 +430,15 @@ Queen <- R6Class("Queen",
 3. Brood hourly hatching cohort
 
 ```{r Run Simulation, warning = FALSE}
-hive <- make_set_hive()
+#hive <- make_set_hive()
+
+source("Random Bee Parameters.R")
+
+hive <- make_empty_hive()
 
 queen <- Queen$new(ceiling(MAX_COLS/2), ceiling(MAX_ROWS/2))
 
-DAYS <- 10
+DAYS <- 30
 
 for(d in 1:DAYS){
 print(paste0("Day ",d))
@@ -496,12 +515,15 @@ Turn images into video
 ```{r Images to Video}
 productPath <- ('/Users/Ben/Desktop/Bee-Simulation/hive_plots/')
 av::av_encode_video(paste0(productPath,list.files(productPath, '*.png')), framerate = 10,
-                    output = paste0("hive_videos/bee_video_D",DAYS,
-                                    "_H",HONEY_BY_HOUR,
-                                    "_P",POLLEN_BY_HOUR,
-                                    "_Q",QUEEN_CELLS_PER_HOUR,
-                                    "_HE",HONEY_EATEN_PER_HOUR,
-                                    "_PE",POLLEN_EATEN_PER_HOUR,
-                                    ".mp4"))
+                    output = gsub("\\.","_",
+                                 paste0("hive_videos/bee_video_D",DAYS,
+                                    "_n",QUEEN_CELLS_PER_HOUR,
+                                    "_rb",BROOD_RADIUS,
+                                    "_rn",NECTER_CONSUMP_RAD,
+                                    "_pph",POLLEN_RATIO,
+                                    "_ph",HONEY_CONSUMPTION_RATIO,
+                                    "_pp",POLLEN_CONSUMPTION_RATIO,
+                                    "_k",K,
+                                    ".mp4")))
 ```
 
