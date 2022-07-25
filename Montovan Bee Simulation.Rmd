@@ -160,15 +160,16 @@ hexes_in_rad <- function(xLoc,yLoc,rad){
 
 To get distance to nearest hex that contains specific contents
 ```{r Nearest Hex with specific content}
-hexes_dist_to_nearest_contents <- function(Xhex,yHex,content,hive_data){
-  xLoc <- (hexdat_centers %>% filter(Xind == Xhex & Yind == yHex))$x
-  yLoc <- (hexdat_centers %>% filter(Xind == Xhex & Yind == yHex))$y
+hexes_dist_to_nearest_contents <- function(xHex,yHex,content,hive_data){
+  
+  xLoc <- (hexdat_centers %>% filter(Xind == xHex & Yind == yHex))$x
+  yLoc <- (hexdat_centers %>% filter(Xind == xHex & Yind == yHex))$y
   
   hex_dist <- hexdat_centers %>% mutate(dist = sqrt((xLoc-x)**2+(yLoc-y)**2))
   
-  hive_df <- as.data.frame(as.table(hive_data[,,1:2])) %>% pivot_wider(names_from = Var3, values_from = Freq)
-  colnames(hive_df) <- c("x","y","contents","amount")
-  hive_df <- hive_df %>% mutate(id = 1:(MAX_COLS*MAX_ROWS))
+  hive_df <- as.data.frame(as.table(hive[,,1:2])) %>% pivot_wider(names_from = Var3, values_from = Freq)
+  colnames(hive_df) <- c("y","x","contents","amount")
+  hive_df <- hive_df %>% arrange(y) %>% mutate(id = 1:(MAX_COLS*MAX_ROWS))
   
   new_hex_dist <- full_join(hex_dist,
                             hive_df %>% select(id,contents),
@@ -190,8 +191,8 @@ get_brood_density <- function(x_ind,y_ind,hive_data){
   hex_dist <- hexdat_centers %>% mutate(dist = sqrt((xLoc-x)**2+(yLoc-y)**2))
   
   hive_df <- as.data.frame(as.table(hive_data[,,1:2])) %>% pivot_wider(names_from = Var3, values_from = Freq)
-  colnames(hive_df) <- c("x","y","contents","amount")
-  hive_df <- hive_df %>% mutate(id = 1:(MAX_COLS*MAX_ROWS))
+  colnames(hive_df) <- c("y","x","contents","amount")
+  hive_df <- hive_df %>% arrange(y) %>% mutate(id = 1:(MAX_COLS*MAX_ROWS))
   
   new_hex_dist <- full_join(hex_dist,
                             hive_df %>% select(id,contents),
@@ -220,7 +221,7 @@ make_set_hive <- function(){
                       rep(0,MAX_ROWS*MAX_COLS*2)),
                     dim = c(MAX_ROWS,MAX_COLS, 3))
   
-  all_to_pollen <- hexes_in_rad(MAX_X/2,MAX_Y/2,BROOD_RADIUS+POLLEN_WIDTH)
+  all_to_pollen <- hexes_in_rad(MAX_X/2+0.75,MAX_Y/2+1,BROOD_RADIUS+POLLEN_WIDTH)
   
   for(i in 1:length(all_to_pollen[[1]])){
     x <- all_to_pollen[[1]][i]
@@ -228,7 +229,7 @@ make_set_hive <- function(){
     set_hive[y,x,1] <- POLLEN
   }
   
-  all_to_brood <- hexes_in_rad(MAX_X/2,MAX_Y/2,BROOD_RADIUS)
+  all_to_brood <- hexes_in_rad(MAX_X/2+0.75,MAX_Y/2+1,BROOD_RADIUS)
   
   for(i in 1:length(all_to_brood[[1]])){
     x <- all_to_brood[[1]][i]
@@ -435,23 +436,66 @@ New_Queen <- R6Class("New Queen",
                    initialize = function(cur_X = NA, cur_Y = NA) {
                      self$cur_X <- cur_X
                      self$cur_Y <- cur_Y
-                   },
-                   move = function(){
-                     angle_move <- runif(1,-pi,pi)
-                     self$cur_X <- self$cur_X + cos(angle_move)
-                     self$cur_Y <- self$cur_Y + sin(angle_move)
                      
                      near_hex <- nearest_hex(self$cur_X,self$cur_Y)
                      self$cur_X_ind <- max(min(near_hex[[1]],MAX_COLS),0)
                      self$cur_Y_ind <- max(min(near_hex[[2]],MAX_ROWS),0)
                    },
+                   move = function(){
+                     angle_move <- runif(1,-pi,pi)
+                     
+                     next_X_ind <- self$cur_X_ind
+                     next_Y_ind <- self$cur_Y_ind
+                     dist <- 0.1
+                     
+                     while(next_X_ind == self$cur_X_ind && next_Y_ind == self$cur_Y_ind){
+                       next_X <- self$cur_X + dist*cos(angle_move)
+                       next_Y <- self$cur_Y + dist*sin(angle_move)
+                       near_hex <- nearest_hex(next_X,next_Y)
+                       next_X_ind <- max(min(near_hex[[1]],MAX_COLS),0)
+                       next_Y_ind <- max(min(near_hex[[2]],MAX_ROWS),0)
+                       
+                       dist <- dist+0.1
+                     }
+                     
+                     print("Moving")
+                     print(d)
+                     print(angle_move)
+                     print(c(self$cur_X,self$cur_Y))
+                     print(c(self$cur_X_ind,self$cur_Y_ind))
+                     self$cur_X <- next_X
+                     self$cur_Y <- next_Y
+                     self$cur_X_ind <- next_X_ind
+                     self$cur_Y_ind <- next_Y_ind
+                     print(c(self$cur_X,self$cur_Y))
+                     print(c(self$cur_X_ind,self$cur_Y_ind))
+                   },
                    lay_brood = function(current_hive){
                      curr_fill <- current_hive[self$cur_Y_ind,self$cur_X_ind,1]
                      curr_val <- current_hive[self$cur_Y_ind,self$cur_X_ind,2]
                      
+                     #Rounding errors killed me here
+                     distance_to_brood <- round(hexes_dist_to_nearest_contents(self$cur_X_ind,self$cur_Y_ind,BROOD,current_hive),2)
+                     
+                     if(distance_to_brood == 1.73){
+                       print("COME AND GET ME SOMETHING IS SO BAD AND WRONG")
+                     }
+                     
+                     print("Laying??")
+                     print(c(self$cur_X_ind,self$cur_Y_ind))
+                     print(c(self$cur_X,self$cur_Y))
+                     print(curr_fill)
+                     print(distance_to_brood)
+                     print(curr_fill == EMPTY)
+                     print(distance_to_brood <= BROOD_RADIUS)
+                     print(curr_fill == EMPTY && 
+                        distance_to_brood <= BROOD_RADIUS)
+                     
                      #If you end up on an empty hive
                      if(curr_fill == EMPTY && 
-                        hexes_dist_to_nearest_contents(self$cur_X_ind,self$cur_Y_ind,BROOD,current_hive) <= BROOD_RADIUS){
+                        distance_to_brood <= BROOD_RADIUS){
+                       print("Laid Brood")
+                       
                        current_hive[self$cur_Y_ind,self$cur_X_ind,1] <- BROOD
                        current_hive[self$cur_Y_ind,self$cur_X_ind,2] <- 0
                        current_hive[self$cur_Y_ind,self$cur_X_ind,3] <- sample(1:24, 1)
@@ -460,6 +504,65 @@ New_Queen <- R6Class("New Queen",
                    }
                  )
 )
+
+```
+
+hexes_dist_to_nearest_contents(20,37,BROOD,hive) <= BROOD_RADIUS
+
+[1] "Moving"
+[1] 1
+[1] -2.312226
+[1]  0.4793277 14.1491788
+[1]  1 59
+[1] -0.6012213 12.9691730
+[1]  1 61
+[1] "COME AND GET ME SOMETHING IS SO BAD AND WRONG"
+[1] "Laying??"
+[1]  1 61
+[1] -0.6012213 12.9691730
+[1] 0
+[1] 1.73
+[1] TRUE
+[1] FALSE
+[1] FALSE
+
+To find the nearest hex to a point
+```{r Nearest Hex Index to Point Redo}
+nearest_hex <- function(xLoc,yLoc){
+  xLoc <- -0.6012213
+  yLoc <- 12.9691730
+  hex_dist <- hexdat_centers %>% mutate(dist = sqrt((xLoc-x)**2+(yLoc-y)**2)) %>% arrange(dist)
+  return(list(hex_dist$Xind[1],hex_dist$Yind[1]))
+}
+```
+
+```{r}
+cur_X_ind <- 1
+cur_Y_ind <- 59
+
+next_X_ind <- 1
+next_Y_ind <- 59
+
+cur_X <- 0.4793277 
+cur_Y <- 14.1491788
+
+angle_move <- -2.312226
+
+dist <- 0.1
+
+while(next_X_ind == cur_X_ind && next_Y_ind == cur_Y_ind){
+  next_X <- cur_X + dist*cos(angle_move)
+  next_Y <- cur_Y + dist*sin(angle_move)
+  near_hex <- nearest_hex(next_X,next_Y)
+  print(c(next_X,next_Y))
+  next_X_ind <- max(min(near_hex[[1]],MAX_COLS),0)
+  next_Y_ind <- max(min(near_hex[[2]],MAX_ROWS),0)
+  print(c(next_X_ind,next_Y_ind))
+                       
+  dist <- dist+0.001
+  
+  print(dist)
+}
 
 ```
 
@@ -480,7 +583,7 @@ for(trial in 1:N_TRIALS){
   
   hive <- make_empty_hive()
   
-  queen <- New_Queen$new(MAX_X/2,MAX_Y/2)
+  queen <- New_Queen$new(median(hexdat_centers$x),median(hexdat_centers$y))
 
   for(d in 1:N_DAYS){
   print(paste0("Day ",d))
@@ -492,7 +595,7 @@ for(trial in 1:N_TRIALS){
       # 2: Eat
       # 3: Lay eggs
       # 4: Brood Hatch
-      order <- sample(1:4,4)
+      order <- c(3) #sample(1:4,1)
       
       for(o in order){
         
@@ -566,34 +669,34 @@ for(trial in 1:N_TRIALS){
   
   productPath <- ('/Users/Ben/Desktop/Bee-Simulation/hive_plots/')
   av::av_encode_video(paste0(productPath,list.files(productPath, '*.png')), framerate = 10,
-                      output = gsub("\\.","_",
-                                   paste0("hive_videos/bee_video_D",DAYS,
-                                      "_n",QUEEN_CELLS_PER_HOUR,
-                                      "_rb",BROOD_RADIUS,
-                                      "_rn",NECTER_CONSUMP_RAD,
-                                      "_pph",POLLEN_RATIO,
-                                      "_ph",HONEY_CONSUMPTION_RATIO,
-                                      "_pp",POLLEN_CONSUMPTION_RATIO,
-                                      "_k",K,
-                                      ".mp4")))
+                      output = paste0("hive_videos/bee_video_D",
+                                 gsub("\\.","_",
+                                 paste0(N_DAYS,
+                                    "_n",QUEEN_CELLS_PER_HOUR,
+                                    "_rb",BROOD_RADIUS,
+                                    "_rn",NECTER_CONSUMP_RAD,
+                                    "_pph",round(POLLEN_RATIO,4),
+                                    "_ph",round(HONEY_CONSUMPTION_RATIO,4),
+                                    "_pp",round(POLLEN_CONSUMPTION_RATIO,4),
+                                    "_k",round(K,4))),".mp4"))
 }
 
 ```
 
 
-Turn images into video
+Turn images into video (Only if needed here)
 ```{r Images to Video}
-productPath <- ('/Users/Ben/Desktop/Bee-Simulation/hive_plots/')
-av::av_encode_video(paste0(productPath,list.files(productPath, '*.png')), framerate = 10,
-                    output = gsub("\\.","_",
-                                 paste0("hive_videos/bee_video_D",DAYS,
-                                    "_n",QUEEN_CELLS_PER_HOUR,
-                                    "_rb",BROOD_RADIUS,
-                                    "_rn",NECTER_CONSUMP_RAD,
-                                    "_pph",POLLEN_RATIO,
-                                    "_ph",HONEY_CONSUMPTION_RATIO,
-                                    "_pp",POLLEN_CONSUMPTION_RATIO,
-                                    "_k",K,
-                                    ".mp4")))
+# productPath <- ('/Users/Ben/Desktop/Bee-Simulation/hive_plots/')
+# av::av_encode_video(paste0(productPath,list.files(productPath, '*.png')), framerate = 10,
+#                     output = paste0("hive_videos/bee_video_D",
+#                                  gsub("\\.","_",
+#                                  paste0(N_DAYS,
+#                                     "_n",QUEEN_CELLS_PER_HOUR,
+#                                     "_rb",BROOD_RADIUS,
+#                                     "_rn",NECTER_CONSUMP_RAD,
+#                                     "_pph",round(POLLEN_RATIO,4),
+#                                     "_ph",round(HONEY_CONSUMPTION_RATIO,4),
+#                                     "_pp",round(POLLEN_CONSUMPTION_RATIO,4),
+#                                     "_k",round(K,4))),".mp4"))
 ```
 
