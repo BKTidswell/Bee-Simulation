@@ -409,25 +409,20 @@ Queen <- R6Class("Queen",
                        angle_move <- atan2(CENTER_Y-self$cur_Y,CENTER_X-self$cur_X) + runif(1,-pi,pi)
                      }
                      
-                     next_X_ind <- self$cur_X_ind
-                     next_Y_ind <- self$cur_Y_ind
-                     dist <- 0.1
+                     dist <- 1
                      
-                     while(next_X_ind == self$cur_X_ind && next_Y_ind == self$cur_Y_ind){
-                       #Keeps it in bounds
-                       next_X <- max(min(self$cur_X + dist*cos(angle_move),MAX_X),0)
-                       next_Y <- max(min(self$cur_Y + dist*sin(angle_move),MAX_Y),0)
-                       near_hex <- nearest_hex(next_X,next_Y)
-                       next_X_ind <- max(min(near_hex[[1]],MAX_COLS),0)
-                       next_Y_ind <- max(min(near_hex[[2]],MAX_ROWS),0)
-                       
-                       dist <- dist+0.1
-                     }
+                     #So we calculate the next X and Y Values
+                     self$cur_X <- max(min(self$cur_X + dist*cos(angle_move),MAX_X),0)
+                     self$cur_Y <- max(min(self$cur_Y + dist*cos(angle_move),MAX_Y),0)
                      
-                     self$cur_X <- next_X
-                     self$cur_Y <- next_Y
-                     self$cur_X_ind <- next_X_ind
-                     self$cur_Y_ind <- next_Y_ind
+                     #Then we find the nearest hex
+                     near_hex <- nearest_hex(self$cur_X,self$cur_Y)
+                     self$cur_X_ind <- max(min(near_hex[[1]],MAX_COLS),0)
+                     self$cur_Y_ind <- max(min(near_hex[[2]],MAX_ROWS),0)
+                
+                     #And *THEN* we set x and y to the center of the current hex, to prevent skipping or drift  
+                     self$cur_X <- (hexdat_centers %>% filter(Xind == self$cur_X_ind & Yind == self$cur_Y_ind))$x
+                     self$cur_Y <- (hexdat_centers %>% filter(Xind == self$cur_X_ind & Yind == self$cur_Y_ind))$y
 
                    },
                    lay_brood = function(current_hive){
