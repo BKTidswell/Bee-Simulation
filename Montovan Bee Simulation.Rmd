@@ -449,15 +449,14 @@ Queen <- R6Class("Queen",
 3. Brood hourly hatching cohort
 
 ```{r Run Simulation, warning = FALSE}
-#hive <- make_set_hive()
-
 N_TRIALS <- 30
-N_DAYS <- 30
+N_DAYS <- 10
 
 for(trial in 1:N_TRIALS){
   source("Random Bee Parameters.R")
   
   hive <- make_empty_hive()
+  #hive <- make_set_hive()
   
   queen <- Queen$new(median(hexdat_centers$x),median(hexdat_centers$y))
 
