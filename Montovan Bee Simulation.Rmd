@@ -58,7 +58,9 @@ hexdat_centers <- full_join(hex_center_xs_df, hex_center_ys_df, by = "id") %>% m
 MAX_X <- max(hex_center_xs)
 MAX_Y <- max(hex_center_ys)
 
-
+CENTER_X <- (hexdat_centers %>% filter(Yind == ceiling(MAX_ROWS/2) & Xind == ceiling(MAX_COLS/2)))$x
+CENTER_Y <- (hexdat_centers %>% filter(Yind == ceiling(MAX_ROWS/2) & Xind == ceiling(MAX_COLS/2)))$y
+  
 ```
 
 This takes a given hive and turns it into a graph
@@ -145,7 +147,7 @@ hex_move <- function(cur_X,cur_Y,prev_X,prev_Y){
 To find the nearest hex to a point
 ```{r Nearest Hex Index to Point}
 nearest_hex <- function(xLoc,yLoc){
-  hex_dist <- hexdat_centers %>% mutate(dist = sqrt((xLoc-x)**2+(yLoc-y)**2)) %>% arrange(dist)
+  hex_dist <- hexdat_centers %>% mutate(dist = round(sqrt((xLoc-x)**2+(yLoc-y)**2),2)) %>% arrange(dist)
   return(list(hex_dist$Xind[1],hex_dist$Yind[1]))
 }
 ```
@@ -153,7 +155,7 @@ nearest_hex <- function(xLoc,yLoc){
 To find all hexes within a radius of a point
 ```{r All Hexes in Radius of a Point}
 hexes_in_rad <- function(xLoc,yLoc,rad){
-  hex_dist <- hexdat_centers %>% mutate(dist = sqrt((xLoc-x)**2+(yLoc-y)**2)) %>% filter(dist <= rad)
+  hex_dist <- hexdat_centers %>% mutate(dist = round(sqrt((xLoc-x)**2+(yLoc-y)**2),2)) %>% filter(dist <= rad)
   return(list(hex_dist$Xind,hex_dist$Yind))
 }
 ```
@@ -165,7 +167,7 @@ hexes_dist_to_nearest_contents <- function(xHex,yHex,content,hive_data){
   xLoc <- (hexdat_centers %>% filter(Xind == xHex & Yind == yHex))$x
   yLoc <- (hexdat_centers %>% filter(Xind == xHex & Yind == yHex))$y
   
-  hex_dist <- hexdat_centers %>% mutate(dist = sqrt((xLoc-x)**2+(yLoc-y)**2))
+  hex_dist <- hexdat_centers %>% mutate(dist = round(sqrt((xLoc-x)**2+(yLoc-y)**2),2))
   
   hive_df <- as.data.frame(as.table(hive[,,1:2])) %>% pivot_wider(names_from = Var3, values_from = Freq)
   colnames(hive_df) <- c("y","x","contents","amount")
@@ -188,7 +190,7 @@ get_brood_density <- function(x_ind,y_ind,hive_data){
   xLoc <- (hexdat_centers %>% filter(Xind == x_ind, Yind == y_ind))$x
   yLoc <- (hexdat_centers %>% filter(Xind == x_ind, Yind == y_ind))$y
   
-  hex_dist <- hexdat_centers %>% mutate(dist = sqrt((xLoc-x)**2+(yLoc-y)**2))
+  hex_dist <- hexdat_centers %>% mutate(dist = round(sqrt((xLoc-x)**2+(yLoc-y)**2),2))
   
   hive_df <- as.data.frame(as.table(hive_data[,,1:2])) %>% pivot_wider(names_from = Var3, values_from = Freq)
   colnames(hive_df) <- c("y","x","contents","amount")
@@ -221,7 +223,7 @@ make_set_hive <- function(){
                       rep(0,MAX_ROWS*MAX_COLS*2)),
                     dim = c(MAX_ROWS,MAX_COLS, 3))
   
-  all_to_pollen <- hexes_in_rad(MAX_X/2+0.75,MAX_Y/2+1,BROOD_RADIUS+POLLEN_WIDTH)
+  all_to_pollen <- hexes_in_rad(CENTER_X,CENTER_Y,BROOD_RADIUS+POLLEN_WIDTH)
   
   for(i in 1:length(all_to_pollen[[1]])){
     x <- all_to_pollen[[1]][i]
@@ -229,7 +231,7 @@ make_set_hive <- function(){
     set_hive[y,x,1] <- POLLEN
   }
   
-  all_to_brood <- hexes_in_rad(MAX_X/2+0.75,MAX_Y/2+1,BROOD_RADIUS)
+  all_to_brood <- hexes_in_rad(CENTER_X,CENTER_Y,BROOD_RADIUS)
   
   for(i in 1:length(all_to_brood[[1]])){
     x <- all_to_brood[[1]][i]
@@ -259,14 +261,14 @@ This makes the nearly empty hive setup
 ```{r Nearly Empty Hive Setup}
 
 make_empty_hive <- function(){
-  BROOD_RADIUS <- 1.5
+  BROOD_RADIUS <- 1
 
   #Second two rows are for brood honey and pollen
   set_hive <- array(c(rep(EMPTY,MAX_ROWS*MAX_COLS),
                       rep(0,MAX_ROWS*MAX_COLS*2)),
                     dim = c(MAX_ROWS,MAX_COLS, 3))
   
-  all_to_brood <- hexes_in_rad(MAX_X/2+0.75,MAX_Y/2+1,BROOD_RADIUS)
+  all_to_brood <- hexes_in_rad(CENTER_X,CENTER_Y,BROOD_RADIUS)
   
   for(i in 1:length(all_to_brood[[1]])){
     x <- all_to_brood[[1]][i]
@@ -380,54 +382,10 @@ hatch_brood <- function(hive_data,hour){
 
 ```
 
-#Moving and Running Queen
-```{r Run Queen}
-Queen <- R6Class("Queen",
-                 public = list(
-                   cur_X = NULL,
-                   cur_Y = NULL,
-                   prev_X = -1,
-                   prev_Y = -1,
-                   initialize = function(cur_X = NA, cur_Y = NA) {
-                     self$cur_X <- cur_X
-                     self$cur_Y <- cur_Y
-                   },
-                   move = function(){
-                     next_hex <- hex_move(self$cur_X,self$cur_Y,self$prev_X,self$prev_Y)
-                     
-                     self$prev_X <- self$cur_X
-                     self$prev_Y <- self$cur_Y
-                     
-                     self$cur_X <- next_hex[1]
-                     self$cur_Y <- next_hex[2]
-                     
-                     #print(c(self$cur_X,self$cur_Y))
-                   },
-                   interact_with_comb = function(current_hive){
-                     curr_fill <- current_hive[self$cur_Y,self$cur_X,1]
-                     curr_val <- current_hive[self$cur_Y,self$cur_X,2]
-                     
-                     #If you end up on an empty hive
-                     if(curr_fill == EMPTY && 
-                        hexes_dist_to_nearest_contents(self$cur_X,self$cur_Y,BROOD,current_hive) <= BROOD_RADIUS){
-                       current_hive[self$cur_Y,self$cur_X,1] <- BROOD
-                       current_hive[self$cur_Y,self$cur_X,2] <- 0
-                       current_hive[self$cur_Y,self$cur_X,3] <- sample(1:24, 1)
-                     }
-                     return(current_hive)
-                   },
-                   buzz = function(){
-                     cat(paste0("Hello, I am a queen!\n",
-                                "I am at: X = ", self$cur_X, " and Y = ", self$cur_Y, ".\n"))
-                   }
-                 )
-)
-```
-
 #New Way of Running Queen
 ```{r New Way of Running Queen}
 
-New_Queen <- R6Class("New Queen",
+Queen <- R6Class("Queen",
                  public = list(
                    cur_X = NULL,
                    cur_Y = NULL,
@@ -442,15 +400,23 @@ New_Queen <- R6Class("New Queen",
                      self$cur_Y_ind <- max(min(near_hex[[2]],MAX_ROWS),0)
                    },
                    move = function(){
-                     angle_move <- runif(1,-pi,pi)
+                     #This makes a random angle of 0 move to the center of the comb
+                     angle_move <- atan2(CENTER_Y-self$cur_Y,CENTER_X-self$cur_X) + runif(1,-pi,pi)
+                     
+                     #If on the edge restrict movement to the half facing the center
+                     if(self$cur_X_ind == 1 || self$cur_X_ind == MAX_COLS ||
+                        self$cur_Y_ind == 1 || self$cur_Y_ind == MAX_ROWS){
+                       angle_move <- atan2(CENTER_Y-self$cur_Y,CENTER_X-self$cur_X) + runif(1,-pi,pi)
+                     }
                      
                      next_X_ind <- self$cur_X_ind
                      next_Y_ind <- self$cur_Y_ind
                      dist <- 0.1
                      
                      while(next_X_ind == self$cur_X_ind && next_Y_ind == self$cur_Y_ind){
-                       next_X <- self$cur_X + dist*cos(angle_move)
-                       next_Y <- self$cur_Y + dist*sin(angle_move)
+                       #Keeps it in bounds
+                       next_X <- max(min(self$cur_X + dist*cos(angle_move),MAX_X),0)
+                       next_Y <- max(min(self$cur_Y + dist*sin(angle_move),MAX_Y),0)
                        near_hex <- nearest_hex(next_X,next_Y)
                        next_X_ind <- max(min(near_hex[[1]],MAX_COLS),0)
                        next_Y_ind <- max(min(near_hex[[2]],MAX_ROWS),0)
@@ -458,44 +424,21 @@ New_Queen <- R6Class("New Queen",
                        dist <- dist+0.1
                      }
                      
-                     print("Moving")
-                     print(d)
-                     print(angle_move)
-                     print(c(self$cur_X,self$cur_Y))
-                     print(c(self$cur_X_ind,self$cur_Y_ind))
                      self$cur_X <- next_X
                      self$cur_Y <- next_Y
                      self$cur_X_ind <- next_X_ind
                      self$cur_Y_ind <- next_Y_ind
-                     print(c(self$cur_X,self$cur_Y))
-                     print(c(self$cur_X_ind,self$cur_Y_ind))
+
                    },
                    lay_brood = function(current_hive){
                      curr_fill <- current_hive[self$cur_Y_ind,self$cur_X_ind,1]
                      curr_val <- current_hive[self$cur_Y_ind,self$cur_X_ind,2]
                      
                      #Rounding errors killed me here
-                     distance_to_brood <- round(hexes_dist_to_nearest_contents(self$cur_X_ind,self$cur_Y_ind,BROOD,current_hive),2)
-                     
-                     if(distance_to_brood == 1.73){
-                       print("COME AND GET ME SOMETHING IS SO BAD AND WRONG")
-                     }
-                     
-                     print("Laying??")
-                     print(c(self$cur_X_ind,self$cur_Y_ind))
-                     print(c(self$cur_X,self$cur_Y))
-                     print(curr_fill)
-                     print(distance_to_brood)
-                     print(curr_fill == EMPTY)
-                     print(distance_to_brood <= BROOD_RADIUS)
-                     print(curr_fill == EMPTY && 
-                        distance_to_brood <= BROOD_RADIUS)
                      
                      #If you end up on an empty hive
                      if(curr_fill == EMPTY && 
-                        distance_to_brood <= BROOD_RADIUS){
-                       print("Laid Brood")
-                       
+                        hexes_dist_to_nearest_contents(self$cur_X_ind,self$cur_Y_ind,BROOD,current_hive) <= BROOD_RADIUS){
                        current_hive[self$cur_Y_ind,self$cur_X_ind,1] <- BROOD
                        current_hive[self$cur_Y_ind,self$cur_X_ind,2] <- 0
                        current_hive[self$cur_Y_ind,self$cur_X_ind,3] <- sample(1:24, 1)
@@ -506,66 +449,6 @@ New_Queen <- R6Class("New Queen",
 )
 
 ```
-
-hexes_dist_to_nearest_contents(20,37,BROOD,hive) <= BROOD_RADIUS
-
-[1] "Moving"
-[1] 1
-[1] -2.312226
-[1]  0.4793277 14.1491788
-[1]  1 59
-[1] -0.6012213 12.9691730
-[1]  1 61
-[1] "COME AND GET ME SOMETHING IS SO BAD AND WRONG"
-[1] "Laying??"
-[1]  1 61
-[1] -0.6012213 12.9691730
-[1] 0
-[1] 1.73
-[1] TRUE
-[1] FALSE
-[1] FALSE
-
-To find the nearest hex to a point
-```{r Nearest Hex Index to Point Redo}
-nearest_hex <- function(xLoc,yLoc){
-  xLoc <- -0.6012213
-  yLoc <- 12.9691730
-  hex_dist <- hexdat_centers %>% mutate(dist = sqrt((xLoc-x)**2+(yLoc-y)**2)) %>% arrange(dist)
-  return(list(hex_dist$Xind[1],hex_dist$Yind[1]))
-}
-```
-
-```{r}
-cur_X_ind <- 1
-cur_Y_ind <- 59
-
-next_X_ind <- 1
-next_Y_ind <- 59
-
-cur_X <- 0.4793277 
-cur_Y <- 14.1491788
-
-angle_move <- -2.312226
-
-dist <- 0.1
-
-while(next_X_ind == cur_X_ind && next_Y_ind == cur_Y_ind){
-  next_X <- cur_X + dist*cos(angle_move)
-  next_Y <- cur_Y + dist*sin(angle_move)
-  near_hex <- nearest_hex(next_X,next_Y)
-  print(c(next_X,next_Y))
-  next_X_ind <- max(min(near_hex[[1]],MAX_COLS),0)
-  next_Y_ind <- max(min(near_hex[[2]],MAX_ROWS),0)
-  print(c(next_X_ind,next_Y_ind))
-                       
-  dist <- dist+0.001
-  
-  print(dist)
-}
-
-```
-
 
 ### Hive levels
 1. Contents (Honey, Pollen, Brood, Empty)
@@ -583,7 +466,8 @@ for(trial in 1:N_TRIALS){
   
   hive <- make_empty_hive()
   
-  queen <- New_Queen$new(median(hexdat_centers$x),median(hexdat_centers$y))
+  queen <- Queen$new(median(hexdat_centers$x),median(hexdat_centers$y))
+  #queen <- Queen$new(0,MAX_Y)
 
   for(d in 1:N_DAYS){
   print(paste0("Day ",d))
