@@ -7,7 +7,7 @@ MAX_BROOD <- 21
 QUEEN_CELLS_PER_HOUR <- sample(60:120,1)
 
 #r_b
-BROOD_RADIUS <- 1 #sample(1:4,1)
+BROOD_RADIUS <- sample(1:4,1)
 #r_n
 NECTER_CONSUMP_RAD <- sample(1:4,1)
 

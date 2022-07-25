@@ -460,7 +460,6 @@ for(trial in 1:N_TRIALS){
   hive <- make_empty_hive()
   
   queen <- Queen$new(median(hexdat_centers$x),median(hexdat_centers$y))
-  #queen <- Queen$new(0,MAX_Y)
 
   for(d in 1:N_DAYS){
   print(paste0("Day ",d))
@@ -472,7 +471,7 @@ for(trial in 1:N_TRIALS){
       # 2: Eat
       # 3: Lay eggs
       # 4: Brood Hatch
-      order <- c(3) #sample(1:4,1)
+      order <- sample(1:4,4)
       
       for(o in order){
         
