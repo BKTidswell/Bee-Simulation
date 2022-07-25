@@ -409,11 +409,9 @@ Queen <- R6Class("Queen",
                        angle_move <- atan2(CENTER_Y-self$cur_Y,CENTER_X-self$cur_X) + runif(1,-pi,pi)
                      }
                      
-                     dist <- 1
-                     
                      #So we calculate the next X and Y Values
-                     self$cur_X <- max(min(self$cur_X + dist*cos(angle_move),MAX_X),0)
-                     self$cur_Y <- max(min(self$cur_Y + dist*cos(angle_move),MAX_Y),0)
+                     self$cur_X <- max(min(self$cur_X + cos(angle_move),MAX_X),0)
+                     self$cur_Y <- max(min(self$cur_Y + sin(angle_move),MAX_Y),0)
                      
                      #Then we find the nearest hex
                      near_hex <- nearest_hex(self$cur_X,self$cur_Y)
