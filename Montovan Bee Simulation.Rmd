@@ -29,7 +29,7 @@ https://stackoverflow.com/questions/24006361/plot-series-of-filled-hexagons-in-g
 
 types <- c("Brood", "Pollen", "Honey", "Empty")
 #hive_colors <- c("#F3DAB1","#FFF966","#DE620B","#230F11")
-hive_colors <- c("#FF0000","#00FF00","#0000FF","#000000")
+hive_colors <- c(Brood = "#FF0000", Honey = "#00FF00", Pollen = "#0000FF", Empty = "#000000")
 
 hex_size <- 1
 
@@ -100,48 +100,20 @@ hive_matrix_to_graph <- function(hive_data,queen){
 
 ```
 
-Moving through hexagons (https://www.redblobgames.com/grids/hexagons/)
-If we store the hexagon values in a 2D grid we need to know which "squares" are actually next to each other on a hexagonal grid
+```{r Graphing Count Contents}
 
-On a square grid we can move from [X,Y] to [X+1,Y], [X-1,Y], [X,Y+1], and [X,Y-1], if we remove diagonals
-
-On a hexagonal grid (using what they call “odd-r” horizontal layout) we can move from [X,Y] to:
-    [X-1,Y-1], [X-1,Y], [X-1,Y+1], [X,Y+1], [X+1,Y], [X,Y-1]
-    
-But that's *just* for the odd rows (1 indexed). For the even rows it's: 
-    [X,Y-1], [X-1,Y], [X,Y+1], [X+1,Y+1], [X+1,Y], [X+1,Y-1]
-
-```{r Hex Movement}
-
-hex_move <- function(cur_X,cur_Y,prev_X,prev_Y){
-  even_row_legal_hexes <- tibble(
-                                x = c(cur_X,cur_X-1,cur_X,cur_X+1,cur_X+1,cur_X+1),
-                                y = c(cur_Y-1,cur_Y,cur_Y+1,cur_Y+1,cur_Y,cur_Y-1)
-                               )
-  odd_row_legal_hexes <- tibble(
-                                x = c(cur_X-1,cur_X-1,cur_X-1,cur_X,cur_X+1,cur_X),
-                                y = c(cur_Y-1,cur_Y,cur_Y+1,cur_Y+1,cur_Y,cur_Y-1)
-                               )
+graph_trends <- function(content_df){
+  Count_Contents_Percent <- tibble(content_df/(MAX_ROWS*MAX_COLS)) %>% mutate(days = (1:n())/24) %>%
+                          pivot_longer(c(Brood,Honey,Pollen,Empty))
   
-  #check if our row is even or odd
-  if(cur_Y %% 2 == 0){
-    legal_hexes <- even_row_legal_hexes
-  }
-  else{
-    legal_hexes <- odd_row_legal_hexes
-  }
+  g <- ggplot(Count_Contents_Percent, aes(x = days, y = value, color = name))+
+              scale_color_manual(values = hive_colors)+
+              geom_line()+
+              theme_classic()
   
-  #Makes sure it can't move back to where it was, or to the last square it was on
-  #Also R is 1 indexed, so it can't be 0 or less
-  legal_hexes <- legal_hexes %>% filter(x > 0) %>% filter(y > 0) %>%
-                                 filter(x <= MAX_COLS) %>% filter(y <= MAX_ROWS) %>%
-                                 filter(!(x == prev_X & y == prev_Y))
-  
-  next_hex <- legal_hexes %>% sample_n(1)
-  
-  return(c(next_hex$x,next_hex$y))
+  return(g)
 }
-
+  
 ```
 
 To find the nearest hex to a point
@@ -449,19 +421,40 @@ Queen <- R6Class("Queen",
 3. Brood hourly hatching cohort
 
 ```{r Run Simulation, warning = FALSE}
-N_TRIALS <- 30
+N_TRIALS <- 1
 N_DAYS <- 10
 
+#To keep track of the data overall
+parameter_df <- tibble(days = 0,
+                       n = 0,
+                       rb = 0,
+                       rn = 0,
+                       pph = 0,
+                       ph = 0,
+                       pp = 0,
+                       k = 0,
+                       pBrood = 0,
+                       pHoney = 0,
+                       pPollen = 0,
+                       pEmpty = 0)
+
 for(trial in 1:N_TRIALS){
-  source("tBee Parameters.R")
+  source("Random Bee Parameters.R")
   
   hive <- make_empty_hive()
   #hive <- make_set_hive()
   
   queen <- Queen$new(median(hexdat_centers$x),median(hexdat_centers$y))
+  
+  #Start up the count
+  Count_Contents <- tibble(Brood = 0,
+                           Honey = 0,
+                           Pollen = 0,
+                           Empty = MAX_ROWS*MAX_COLS)
 
   for(d in 1:N_DAYS){
   print(paste0("Day ",d))
+  
   #24 hours in a day
     for(h in 1:24){
       
@@ -472,7 +465,7 @@ for(trial in 1:N_TRIALS){
       # 4: Eat Pollen
       # 5: Lay eggs
       # 6: Brood Hatch
-      order <- sample(1:6,4)
+      order <- sample(1:6,6)
       
       for(o in order){
         
@@ -529,15 +522,28 @@ for(trial in 1:N_TRIALS){
         }
         
       }
+      
+      Count_Contents <- Count_Contents %>% add_row(Brood = length(which(hive[,,1] == BROOD)),
+                                                   Honey = length(which(hive[,,1] == HONEY)),
+                                                   Pollen = length(which(hive[,,1] == POLLEN)),
+                                                   Empty = length(which(hive[,,1] == EMPTY)))
+  
       #Now graph for that hour
       #Each one takes about 0.3 s
       ggsave(paste0("hive_plots/hiveplot_",str_pad((d-1)*24+h, 5, pad = "0"),
                     "_D",str_pad(d, 3, pad = "0"),".png"),
              hive_matrix_to_graph(hive,queen),width=7, height=7)
     }
+    
     hive <- age_brood(hive)
   }
   
+  #Save the final plot to go at the end of a video
+  ggsave(paste0("hive_plots/hiveplot_",str_pad((d-1)*24+h+1, 5, pad = "0"),
+                    "_D",str_pad(d, 3, pad = "0"),".png"),
+             graph_trends(Count_Contents),width=7, height=7)
+  
+  #Save it out as a video
   productPath <- ('/Users/Ben/Desktop/Bee-Simulation/hive_plots/')
   av::av_encode_video(paste0(productPath,list.files(productPath, '*.png')), framerate = 10,
                       output = paste0("hive_videos/bee_video_D",
@@ -550,7 +556,23 @@ for(trial in 1:N_TRIALS){
                                     "_ph",round(HONEY_CONSUMPTION_RATIO,4),
                                     "_pp",round(POLLEN_CONSUMPTION_RATIO,4),
                                     "_k",round(K,4))),".mp4"))
+  
+  parameter_df <- parameter_df %>% add_row(days = N_DAYS,
+                                           n = QUEEN_CELLS_PER_HOUR,
+                                           rb = BROOD_RADIUS,
+                                           rn = NECTER_CONSUMP_RAD,
+                                           pph = round(POLLEN_RATIO,4),
+                                           ph = round(HONEY_CONSUMPTION_RATIO,4),
+                                           pp = round(POLLEN_CONSUMPTION_RATIO,4),
+                                           k = round(K,4),
+                                           pBrood = length(which(hive[,,1] == BROOD))/MAX_ROWS*MAX_COLS,
+                                           pHoney = length(which(hive[,,1] == HONEY))/MAX_ROWS*MAX_COLS,
+                                           pPollen = length(which(hive[,,1] == POLLEN))/MAX_ROWS*MAX_COLS,
+                                           pEmpty = length(which(hive[,,1] == EMPTY))/MAX_ROWS*MAX_COLS)
+  
 }
+
+write.csv(parameter_df,paste0("Beehive Date Out ",Sys.time(),".csv"))
 
 ```
 
@@ -570,4 +592,6 @@ Turn images into video (Only if needed here)
 #                                     "_pp",round(POLLEN_CONSUMPTION_RATIO,4),
 #                                     "_k",round(K,4))),".mp4"))
 ```
+
+
 
