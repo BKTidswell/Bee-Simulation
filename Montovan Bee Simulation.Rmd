@@ -453,7 +453,7 @@ N_TRIALS <- 30
 N_DAYS <- 10
 
 for(trial in 1:N_TRIALS){
-  source("Random Bee Parameters.R")
+  source("tBee Parameters.R")
   
   hive <- make_empty_hive()
   #hive <- make_set_hive()
@@ -466,11 +466,13 @@ for(trial in 1:N_TRIALS){
     for(h in 1:24){
       
       #This is to give the actions a random order
-      # 1: Collect
-      # 2: Eat
-      # 3: Lay eggs
-      # 4: Brood Hatch
-      order <- sample(1:4,4)
+      # 1: Collect Honey
+      # 2: Collect Pollen 
+      # 3: Eat Honey
+      # 4: Eat Pollen
+      # 5: Lay eggs
+      # 6: Brood Hatch
+      order <- sample(1:6,4)
       
       for(o in order){
         
@@ -478,57 +480,51 @@ for(trial in 1:N_TRIALS){
           #only collect during the day
           if(h <= 12){
             #Now add the right amount of products
-            for(i in 1:POLLEN_BY_HOUR){
-              hive <- collect_products(hive,POLLEN,MAX_POLLEN)
-              start_time <- Sys.time()
-              hive <- collect_products(hive,POLLEN,MAX_POLLEN)
-              end_time <- Sys.time()
-              end_time - start_time
-            }
             for(i in 1:HONEY_BY_HOUR){
-              #each one takes about 0.003 s
               hive <- collect_products(hive,HONEY,MAX_HONEY)
-              start_time <- Sys.time()
-
-              end_time <- Sys.time()
-              end_time - start_time
             }
           }
-        } else if(o == 2){
+        } else if (o == 2){
+          #only collect during the day
+          if(h <= 12){
+            #Now add the right amount of products
+            for(i in 1:POLLEN_BY_HOUR){
+              hive <- collect_products(hive,POLLEN,MAX_POLLEN)
+            }
+          }
+        } else if(o == 3){
             #Now we have bees eat
             honey_eaten <- 0
-            pollen_eaten <- 0
             honey_eat_attempts <- 0
-            pollen_eat_attempts <- 0
             
             #We want to make sure that they don't eat more than they should
             # to keep it balanced
+            while(honey_eaten < HONEY_EATEN_PER_HOUR && honey_eat_attempts < HONEY_BY_HOUR){
+              eating_output <- eat_products(hive,HONEY)
+              hive <- eating_output[[1]]
+              honey_eaten <- honey_eaten + eating_output[[2]]
+              honey_eat_attempts <- honey_eat_attempts + 1
+            }
+        } else if (o == 4){
+          #We want to make sure that they don't eat more than they should
+            # to keep it balanced
+            pollen_eaten <- 0
+            pollen_eat_attempts <- 0
+            
             while(pollen_eaten < POLLEN_EATEN_PER_HOUR && pollen_eat_attempts < POLLEN_BY_HOUR){
               eating_output <- eat_products(hive,POLLEN)
               hive <- eating_output[[1]]
               pollen_eaten <- pollen_eaten + eating_output[[2]]
               pollen_eat_attempts <- pollen_eat_attempts + 1
             }
-            while(honey_eaten < HONEY_EATEN_PER_HOUR && honey_eat_attempts < HONEY_BY_HOUR){
-              #Each one takes about 0.004 s
-              eating_output <- eat_products(hive,HONEY)
-              hive <- eating_output[[1]]
-              honey_eaten <- honey_eaten + eating_output[[2]]
-              honey_eat_attempts <- honey_eat_attempts + 1
-            }
-        } else if(o == 3){
+        } else if(o == 5){
             #And then we have the queen lay brood
             for(i in 1:QUEEN_CELLS_PER_HOUR){
-              #Each one takes about 0.015
-              #Moving takes 0.005
-              #Laying takes about 0.01
-              
               queen$move()
               hive <- queen$lay_brood(hive)
             }
-        } else if(o == 4){
+        } else if(o == 6){
             #Now we hatch the bees
-            #Each one takes about 0.003
             hive <- hatch_brood(hive,h)
         }
         
