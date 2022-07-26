@@ -422,7 +422,7 @@ Queen <- R6Class("Queen",
 
 ```{r Run Simulation, warning = FALSE}
 N_TRIALS <- 1
-N_DAYS <- 10
+N_DAYS <- 2
 
 #To keep track of the data overall
 parameter_df <- tibble(days = 0,
@@ -565,10 +565,10 @@ for(trial in 1:N_TRIALS){
                                            ph = round(HONEY_CONSUMPTION_RATIO,4),
                                            pp = round(POLLEN_CONSUMPTION_RATIO,4),
                                            k = round(K,4),
-                                           pBrood = length(which(hive[,,1] == BROOD))/MAX_ROWS*MAX_COLS,
-                                           pHoney = length(which(hive[,,1] == HONEY))/MAX_ROWS*MAX_COLS,
-                                           pPollen = length(which(hive[,,1] == POLLEN))/MAX_ROWS*MAX_COLS,
-                                           pEmpty = length(which(hive[,,1] == EMPTY))/MAX_ROWS*MAX_COLS)
+                                           pBrood = length(which(hive[,,1] == BROOD))/(MAX_ROWS*MAX_COLS),
+                                           pHoney = length(which(hive[,,1] == HONEY))/(MAX_ROWS*MAX_COLS),
+                                           pPollen = length(which(hive[,,1] == POLLEN))/(MAX_ROWS*MAX_COLS),
+                                           pEmpty = length(which(hive[,,1] == EMPTY))/(MAX_ROWS*MAX_COLS))
   
 }
 
