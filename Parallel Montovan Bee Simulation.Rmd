@@ -506,7 +506,7 @@ Hive levels
 3. Brood hourly hatching cohort
 
 ```{r Run Simulation, warning = FALSE}
-N_TRIALS <- 1
+N_TRIALS <- 10
 N_DAYS <- 60
 
 #To keep track of the data overall
@@ -524,8 +524,17 @@ parameter_df <- tibble(days = 0,
                        pPollen = 0,
                        pEmpty = 0)
 
-for(trial in 1:N_TRIALS){
-  source("Bee Parameters.R")
+library(foreach)
+library(doParallel)
+library(parallel)
+library(R.devices)
+
+numCores <- detectCores()-2
+
+registerDoParallel(numCores)
+
+foreach(trial = 1:N_TRIALS) %dopar%{
+  source("Random Bee Parameters.R")
   
   #hive <- make_empty_hive()
   hive <- make_set_hive()
@@ -566,7 +575,7 @@ for(trial in 1:N_TRIALS){
           }
         } else if(o == 2){
           
-            brood_density_prob_array <- calc_brood_dense_prob(hive)
+            #brood_density_prob_array <- calc_brood_dense_prob(hive)
           
             #Now we have bees eat
             honey_eaten <- 0
@@ -616,7 +625,7 @@ for(trial in 1:N_TRIALS){
       ggsave(paste0("hive_plots/hiveplot_",str_pad((d-1)*24+h, 5, pad = "0"),
                     "_D",str_pad(d, 3, pad = "0"),
                     "_T",str_pad(trial, 3, pad = "0"),".png"),
-             hive_matrix_to_graph(hive,queen),width=7, height=7)
+             hive_matrix_to_graph(hive,queen),width=7, height=7, type = "cairo")
     }
     
     hive <- age_brood(hive)
@@ -626,7 +635,7 @@ for(trial in 1:N_TRIALS){
   ggsave(paste0("hive_plots/hiveplot_",str_pad((d-1)*24+h+1, 5, pad = "0"),
                     "_D",str_pad(d, 3, pad = "0"),
                     "_T",str_pad(trial, 3, pad = "0"),".png"),
-             graph_trends(Count_Contents),width=7, height=7)
+             graph_trends(Count_Contents),width=7, height=7, type = "cairo")
   
   #Save it out as a video
   productPath <- ('/Users/Ben/Desktop/Bee-Simulation/hive_plots/')
@@ -664,23 +673,80 @@ write.csv(parameter_df,paste0("Beehive Date Out ",Sys.time(),".csv"))
 
 ```
 
+Trying Parallel
+```{r}
+library(parallel)
+library(foreach)
+library(doParallel)
 
-Turn images into video (Only if needed here)
-```{r Images to Video}
-# productPath <- ('/Users/Ben/Desktop/Bee-Simulation/hive_plots/')
-# av::av_encode_video(paste0(productPath,list.files(productPath, '*.png')), framerate = 10,
-#                     output = paste0("hive_videos/bee_video_D",
-#                                  gsub("\\.","_",
-#                                  paste0(N_DAYS,
-#                                     "_n",QUEEN_CELLS_PER_HOUR,
-#                                     "_rb",BROOD_RADIUS,
-#                                     "_rn",NECTER_CONSUMP_RAD,
-#                                     "_pph",round(POLLEN_RATIO,4),
-#                                     "_ph",round(HONEY_CONSUMPTION_RATIO,4),
-#                                     "_pp",round(POLLEN_CONSUMPTION_RATIO,4),
-#                                     "_k",round(K,4))),".mp4"))
+numCores <- detectCores()
 ```
 
 
+```{r}
+foreach(i = 1:10) %dopar%{
+  ggsave(paste0("hive_plots/hiveplot_",str_pad((d-1)*24+h, 5, pad = "0"),
+                    "_D",str_pad(d, 3, pad = "0"),
+                    "_T",str_pad(i, 3, pad = "0"),".png"),
+             hive_matrix_to_graph(hive,queen),width=7, height=7)
+}
+```
+
+
+```{r}
+
+# load parallel package
+require(parallel)
+# define function to test whether an number is prime
+is_prime <- function(num)
+{
+    # if input equals 2 or 3, then we know it's prime
+    if(num == 2 | num == 3) 
+      return(TRUE)
+    # if input equals 1, then we know it's not prime
+    if(num == 1) 
+      return(FALSE)
+  
+    # else if num is greater than 2
+    # and divisible by 2, then can't be even
+    if(num %% 2 == 0) 
+      return(FALSE)
+  
+    # else use algorithm to figure out
+    # what factors, if any, input has
+    
+    # get square root of num, rounded down
+    root <- floor(sqrt(num))
+    
+    # try to divide each odd number up to root
+    # into num; if any leave a remainder of zero,
+    # then we know num is not prime
+    for(elt in seq(5,root))
+    {
+        if (num %% elt == 0)
+          return(FALSE)
+      
+    }
+    # otherwise, num has no divisors except 1 and itself
+    # thus, num must be prime
+    return(TRUE)
+  
+}
+# get random sample of 1 million integers from integers between 1 and 
+# 10 million
+# set seed so the random sample will be the same every time
+set.seed(2)
+sample_numbers <- sample(10000000, 10000000)
+# do a couple checks of function
+is_prime(17) # 17 is prime
+is_prime(323) # 323 = 17 * 19; not prime
+# create cluster object
+cl <- makeCluster(10)
+# test each number in sample_numbers for primality
+results <- parSapply(cl , sample_numbers , is_prime)
+# close
+stopCluster(cl)
+
+```
 
 
