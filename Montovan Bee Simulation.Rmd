@@ -70,7 +70,7 @@ This takes a given hive and turns it into a graph
 ```{r Hive to Graph}
 
 hive_matrix_to_graph <- function(hive_data,queen){
-  hive_tbl <- as.table(hive[,,1:2])
+  hive_tbl <- as.table(hive_data[,,1:2])
   colnames(hive_tbl) <- 1:MAX_COLS
   rownames(hive_tbl) <- 1:MAX_ROWS
   hive_df_pre <- as.data.frame(hive_tbl)
@@ -145,7 +145,7 @@ hexes_dist_to_nearest_contents <- function(xHex,yHex,content,hive_data){
   
   hex_dist <- hexdat_centers %>% mutate(dist = round(sqrt((xLoc-x)**2+(yLoc-y)**2),2))
   
-  hive_df <- as.data.frame(as.table(hive[,,1:2])) %>% pivot_wider(names_from = Var3, values_from = Freq)
+  hive_df <- as.data.frame(as.table(hive_data[,,1:2])) %>% pivot_wider(names_from = Var3, values_from = Freq)
   colnames(hive_df) <- c("y","x","contents","amount")
   hive_df <- hive_df %>% arrange(y) %>% mutate(id = 1:(MAX_COLS*MAX_ROWS))
   

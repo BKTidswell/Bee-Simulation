@@ -9,6 +9,9 @@ library(forcats)
 library(reshape2)
 library(R6)
 library(av)
+library(foreach)
+library(doParallel)
+library(parallel)
 ```
 
 Define variables
@@ -70,7 +73,7 @@ This takes a given hive and turns it into a graph
 ```{r Hive to Graph}
 
 hive_matrix_to_graph <- function(hive_data,queen){
-  hive_tbl <- as.table(hive[,,1:2])
+  hive_tbl <- as.table(hive_data[,,1:2])
   colnames(hive_tbl) <- 1:MAX_COLS
   rownames(hive_tbl) <- 1:MAX_ROWS
   hive_df_pre <- as.data.frame(hive_tbl)
@@ -145,7 +148,7 @@ hexes_dist_to_nearest_contents <- function(xHex,yHex,content,hive_data){
   
   hex_dist <- hexdat_centers %>% mutate(dist = round(sqrt((xLoc-x)**2+(yLoc-y)**2),2))
   
-  hive_df <- as.data.frame(as.table(hive[,,1:2])) %>% pivot_wider(names_from = Var3, values_from = Freq)
+  hive_df <- as.data.frame(as.table(hive_data[,,1:2])) %>% pivot_wider(names_from = Var3, values_from = Freq)
   colnames(hive_df) <- c("y","x","contents","amount")
   hive_df <- hive_df %>% arrange(y) %>% mutate(id = 1:(MAX_COLS*MAX_ROWS))
   
@@ -328,8 +331,6 @@ eat_products <- function(hive_data,product){
 ```{r Get whole hive brood selection probability}
 calc_brood_dense_prob <- function(hive_data){
   brood_dense_array <- array(0, dim = c(MAX_ROWS,MAX_COLS))
-  
-  hive_data <- hive
   
   for(x in 1:MAX_COLS){
     for(y in 1:MAX_ROWS){
@@ -524,11 +525,6 @@ parameter_df <- tibble(days = 0,
                        pPollen = 0,
                        pEmpty = 0)
 
-library(foreach)
-library(doParallel)
-library(parallel)
-library(R.devices)
-
 numCores <- detectCores()-2
 
 registerDoParallel(numCores)
@@ -584,8 +580,8 @@ foreach(trial = 1:N_TRIALS) %dopar%{
             #We want to make sure that they don't eat more than they should
             # to keep it balanced
             while(honey_eaten < HONEY_EATEN_PER_HOUR && honey_eat_attempts < HONEY_BY_HOUR){
-              eating_output <- eat_products_m2(hive,brood_density_prob_array,HONEY)
-              #eating_output <- eat_products(hive,HONEY)
+              #eating_output <- eat_products_m2(hive,brood_density_prob_array,HONEY)
+              eating_output <- eat_products(hive,HONEY)
               hive <- eating_output[[1]]
               honey_eaten <- honey_eaten + eating_output[[2]]
               honey_eat_attempts <- honey_eat_attempts + 1
@@ -680,16 +676,6 @@ library(foreach)
 library(doParallel)
 
 numCores <- detectCores()
-```
-
-
-```{r}
-foreach(i = 1:10) %dopar%{
-  ggsave(paste0("hive_plots/hiveplot_",str_pad((d-1)*24+h, 5, pad = "0"),
-                    "_D",str_pad(d, 3, pad = "0"),
-                    "_T",str_pad(i, 3, pad = "0"),".png"),
-             hive_matrix_to_graph(hive,queen),width=7, height=7)
-}
 ```
 
 
