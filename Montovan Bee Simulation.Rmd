@@ -526,7 +526,7 @@ Hive levels
 2. Amount (For Brood it's the age)
 3. Brood hourly hatching cohort
 
-```{r Run Simulation, warning = FALSE}
+```{r Run Simulation, warning = FALsSE}
 N_TRIALS <- 10
 N_DAYS <- 20
 
@@ -546,7 +546,7 @@ parameter_df <- tibble(days = 0,
                        pEmpty = 0)
 
 for(trial in 1:N_TRIALS){
-  source("Bee Parameters.R")
+  source("Random Bee Parameters.R")
   
   #hive <- make_empty_hive()
   hive <- make_set_hive()
