@@ -43,8 +43,8 @@ Hive levels
 3. Brood hourly hatching cohort
 
 ```{r Run Simulation, warning = FALSE}
-N_TRIALS <- 10
-N_DAYS <- 20
+N_TRIALS <- 3
+N_DAYS <- 1
 
 #To keep track of the data overall
 parameter_df <- tibble(days = 0,
@@ -61,11 +61,11 @@ parameter_df <- tibble(days = 0,
                        pPollen = 0,
                        pEmpty = 0)
 
-numCores <- detectCores()-2
+numCores <- detectCores()
 
 registerDoParallel(numCores)
 
-foreach(trial = 1:N_TRIALS) %dopar%{
+parameter_df <- foreach(trial = 1:N_TRIALS, .combine='rbind') %dopar%{
   source("Random Bee Parameters.R")
   
   #hive <- make_empty_hive()
@@ -86,10 +86,12 @@ foreach(trial = 1:N_TRIALS) %dopar%{
     for(h in 1:24){
       
       #This is to give the actions a random order
-      # 1: Collecting 
-      # 2: Eating
-      # 3: Lay eggs
-      # 4: Brood Hatch
+      # 1: Collecting Honey
+      # 2: Collecting Pollen
+      # 3: Eating Honey
+      # 4: Eating Pollen
+      # 5: Lay eggs
+      # 6: Brood Hatch
       order <- sample(1:4,4)
       
       for(o in order){
@@ -101,11 +103,16 @@ foreach(trial = 1:N_TRIALS) %dopar%{
             for(i in 1:HONEY_BY_HOUR){
               hive <- collect_products(hive,HONEY,MAX_HONEY)
             }
+          }
+        } else if(o == 2){
+          #only collect during the day
+          if(h <= 12){
+            #Now add the right amount of products
             for(i in 1:POLLEN_BY_HOUR){
               hive <- collect_products(hive,POLLEN,MAX_POLLEN)
             }
           }
-        } else if(o == 2){
+        } else if(o == 3){
           
             #brood_density_prob_array <- calc_brood_dense_prob(hive)
           
@@ -117,30 +124,38 @@ foreach(trial = 1:N_TRIALS) %dopar%{
             # to keep it balanced
             while(honey_eaten < HONEY_EATEN_PER_HOUR && honey_eat_attempts < HONEY_BY_HOUR){
               #eating_output <- eat_products_m2(hive,brood_density_prob_array,HONEY)
-              eating_output <- eat_products(hive,HONEY)
+              #eating_output <- eat_products(hive,HONEY)
+              eating_output <- eat_products_random(hive,HONEY)
               hive <- eating_output[[1]]
               honey_eaten <- honey_eaten + eating_output[[2]]
               honey_eat_attempts <- honey_eat_attempts + 1
             }
+            
+        } else if(o == 4){
+          
+            #brood_density_prob_array <- calc_brood_dense_prob(hive)
             
             pollen_eaten <- 0
             pollen_eat_attempts <- 0
             
             while(pollen_eaten < POLLEN_EATEN_PER_HOUR && pollen_eat_attempts < POLLEN_BY_HOUR){
               #eating_output <- eat_products_m2(hive,brood_density_prob_array,HONEY)
-              eating_output <- eat_products(hive,POLLEN)
+              #eating_output <- eat_products(hive,POLLEN)
+              eating_output <- eat_products_random(hive,POLLEN)
               hive <- eating_output[[1]]
               pollen_eaten <- pollen_eaten + eating_output[[2]]
               pollen_eat_attempts <- pollen_eat_attempts + 1
             }
-        } else if(o == 3){
+            
+        } else if(o == 5){
             #And then we have the queen lay brood
             for(i in 1:QUEEN_CELLS_PER_HOUR){
               queen$move_to_center()
               #queen$move()
               hive <- queen$lay_brood(hive)
             }
-        } else if(o == 4){
+          
+        } else if(o == 6){
             #Now we hatch the bees
             hive <- hatch_brood(hive,h)
         }
@@ -185,7 +200,7 @@ foreach(trial = 1:N_TRIALS) %dopar%{
                                     "_pp",round(POLLEN_CONSUMPTION_RATIO,4),
                                     "_k",round(K,4))),".mp4"))
   
-  parameter_df <- parameter_df %>% add_row(days = N_DAYS,
+  tibble(days = N_DAYS,
                                            n = QUEEN_CELLS_PER_HOUR,
                                            rb = BROOD_RADIUS,
                                            rn = NECTER_CONSUMP_RAD,
