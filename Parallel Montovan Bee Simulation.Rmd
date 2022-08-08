@@ -92,7 +92,7 @@ parameter_df <- foreach(trial = 1:N_TRIALS, .combine='rbind') %dopar%{
       # 4: Eating Pollen
       # 5: Lay eggs
       # 6: Brood Hatch
-      order <- sample(1:4,4)
+      order <- sample(1:6,6)
       
       for(o in order){
         
