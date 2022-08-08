@@ -52,7 +52,7 @@ make_set_hive <- function(){
 }
 
 
-T#his makes the nearly empty hive setup
+#This makes the nearly empty hive setup
 make_empty_hive <- function(){
   BROOD_RADIUS <- 1
   

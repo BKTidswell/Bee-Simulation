@@ -35,6 +35,7 @@ source("Hive Cell Finder Functions.R")
 source("Hive Setup Functions.R")
 source("Honey Pollen Brood Functions.R")
 source("Queen Def.R")
+source("Final Measures.R")
 ```
 
 # Simulation
@@ -61,7 +62,9 @@ parameter_df <- tibble(days = 0,
                        pBrood = 0,
                        pHoney = 0,
                        pPollen = 0,
-                       pEmpty = 0)
+                       pEmpty = 0,
+                       broodMetric = 0,
+                       pollenRing = 0)
 
 numCores <- detectCores()
 
@@ -163,34 +166,30 @@ parameter_df <- foreach(trial = 1:N_TRIALS, .combine='rbind') %dopar%{
         }
         
       }
-      
-      Count_Contents <- Count_Contents %>% add_row(Brood = length(which(hive[,,1] == BROOD)),
-                                                   Honey = length(which(hive[,,1] == HONEY)),
-                                                   Pollen = length(which(hive[,,1] == POLLEN)),
-                                                   Empty = length(which(hive[,,1] == EMPTY)))
     }
     
     hive <- age_brood(hive)
   }
   
   data_out <- tibble(days = N_DAYS,
-                                           n = QUEEN_CELLS_PER_HOUR,
-                                           rb = BROOD_RADIUS,
-                                           rn = NECTER_CONSUMP_RAD,
-                                           w = TOTAL_DAILY_HONEY,
-                                           pph = round(POLLEN_RATIO,4),
-                                           ph = round(HONEY_CONSUMPTION_RATIO,4),
-                                           pp = round(POLLEN_CONSUMPTION_RATIO,4),
-                                           k = round(K,4),
-                                           pBrood = length(which(hive[,,1] == BROOD))/(MAX_ROWS*MAX_COLS),
-                                           pHoney = length(which(hive[,,1] == HONEY))/(MAX_ROWS*MAX_COLS),
-                                           pPollen = length(which(hive[,,1] == POLLEN))/(MAX_ROWS*MAX_COLS),
-                                           pEmpty = length(which(hive[,,1] == EMPTY))/(MAX_ROWS*MAX_COLS))
+                     n = QUEEN_CELLS_PER_HOUR,
+                     rb = BROOD_RADIUS,
+                     rn = NECTER_CONSUMP_RAD,
+                     w = TOTAL_DAILY_HONEY,
+                     pph = round(POLLEN_RATIO,4),
+                     ph = round(HONEY_CONSUMPTION_RATIO,4),
+                     pp = round(POLLEN_CONSUMPTION_RATIO,4),
+                     k = round(K,4),
+                     pBrood = length(which(hive[,,1] == BROOD))/(MAX_ROWS*MAX_COLS),
+                     pHoney = length(which(hive[,,1] == HONEY))/(MAX_ROWS*MAX_COLS),
+                     pPollen = length(which(hive[,,1] == POLLEN))/(MAX_ROWS*MAX_COLS),
+                     pEmpty = length(which(hive[,,1] == EMPTY))/(MAX_ROWS*MAX_COLS),
+                     broodMetric = brood_metric(hive),
+                     pollenRing = pollen_ring_metric(hive))
   
   write.csv(data_out,paste0("hive_data/Beehive Data Out Trial ",trial,Sys.time(),".csv"))
   
   data_out
-  
 }
 
 write.csv(parameter_df,paste0("Beehive Data Out ",Sys.time(),".csv"))

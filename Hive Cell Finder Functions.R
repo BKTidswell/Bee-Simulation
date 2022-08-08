@@ -45,7 +45,7 @@ get_brood_density <- function(x_ind,y_ind,hive_data){
   
   new_hex_dist <- full_join(hex_dist,
                             hive_df %>% select(id,contents),
-                            by="id") %>% filter(contents == BROOD) %>% filter(dist < NECTER_CONSUMP_RAD)
+                            by="id") %>% filter(contents == BROOD) %>% filter(dist <= NECTER_CONSUMP_RAD)
   
   distance_to_all_brood <- sum(new_hex_dist$dist)
   
