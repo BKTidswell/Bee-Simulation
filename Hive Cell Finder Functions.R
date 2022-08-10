@@ -51,3 +51,16 @@ get_brood_density <- function(x_ind,y_ind,hive_data){
   
   return(distance_to_all_brood/(3*NECTER_CONSUMP_RAD*(NECTER_CONSUMP_RAD+1)))
 }
+
+#Get whole hive brood selection probability
+calc_brood_dense_prob <- function(hive_data){
+  brood_dense_array <- array(0, dim = c(MAX_ROWS,MAX_COLS))
+  
+  for(x in 1:MAX_COLS){
+    for(y in 1:MAX_ROWS){
+      brood_dense_array[y,x] <- 1 + get_brood_density(x,y,hive_data)*(K-1)
+    }
+  }
+  
+  return(brood_dense_array)
+}

@@ -84,18 +84,3 @@ make_empty_hive <- function(){
   
   return(set_hive)
 }
-
-#Get whole hive brood selection probability
-calc_brood_dense_prob <- function(hive_data){
-  brood_dense_array <- array(0, dim = c(MAX_ROWS,MAX_COLS))
-  
-  hive_data <- hive
-  
-  for(x in 1:MAX_COLS){
-    for(y in 1:MAX_ROWS){
-      brood_dense_array[y,x] <- 1 + get_brood_density(x,y,hive_data)*(K-1)
-    }
-  }
-  
-  return(brood_dense_array)
-}

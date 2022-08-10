@@ -1,9 +1,3 @@
----
-title: "Montovan Style Bee Simulation"
-output: html_notebook
----
-
-```{r}
 library(ggplot2)
 library(dplyr)
 library(tidyr)
@@ -14,10 +8,8 @@ library(R6)
 library(foreach)
 library(doParallel)
 library(parallel)
-```
 
-Define variables
-```{r Variables}
+#Define stuff
 BROOD <- 1
 POLLEN <- 2
 HONEY <- 3 
@@ -26,31 +18,30 @@ EMPTY <- 0
 MAX_ROWS <- 75
 MAX_COLS <- 45
 
-```
+trial_add <- 2000
 
-Load all functions
-```{r}
+
+#Load all functions
 source("Graphing Functions.R")
 source("Hive Cell Finder Functions.R")
 source("Hive Setup Functions.R")
 source("Honey Pollen Brood Functions.R")
 source("Queen Def.R")
 source("Final Measures.R")
-```
+
 
 # Simulation
+# Hive levels
+# 1. Contents (Honey, Pollen, Brood, Empty)
+# 2. Amount (For Brood it's the age)
+# 3. Brood hourly hatching cohort
 
-Hive levels
-1. Contents (Honey, Pollen, Brood, Empty)
-2. Amount (For Brood it's the age)
-3. Brood hourly hatching cohort
-
-```{r Run Simulation, warning = FALSE}
 N_TRIALS <- 1
-N_DAYS <- 1
+N_DAYS <- 2
 
 #To keep track of the data overall
-parameter_df <- tibble(days = 0,
+parameter_df <- tibble(trial_n = 0,
+                       days = 0,
                        n = 0,
                        rb = 0,
                        rn = 0,
@@ -70,6 +61,8 @@ numCores <- detectCores()
 
 registerDoParallel(numCores)
 
+print(numCores)
+
 parameter_df <- foreach(trial = 1:N_TRIALS, .combine='rbind') %dopar%{
   source("Random Bee Parameters.R")
   
@@ -83,11 +76,11 @@ parameter_df <- foreach(trial = 1:N_TRIALS, .combine='rbind') %dopar%{
                            Honey = length(which(hive[,,1] == HONEY)),
                            Pollen = length(which(hive[,,1] == POLLEN)),
                            Empty = length(which(hive[,,1] == EMPTY)))
-
-  for(d in 1:N_DAYS){
-  print(paste0("Day ",d))
   
-  #24 hours in a day
+  for(d in 1:N_DAYS){
+    print(paste0("Day ",d))
+    
+    #24 hours in a day
     for(h in 1:24){
       
       #This is to give the actions a random order
@@ -97,7 +90,7 @@ parameter_df <- foreach(trial = 1:N_TRIALS, .combine='rbind') %dopar%{
       # 4: Eating Pollen
       # 5: Lay eggs
       # 6: Brood Hatch
-      order <- sample(1:6,6)
+      order <- 1:6 #sample(1:6,6)
       
       for(o in order){
         
@@ -119,50 +112,50 @@ parameter_df <- foreach(trial = 1:N_TRIALS, .combine='rbind') %dopar%{
           }
         } else if(o == 3){
           
-            #brood_density_prob_array <- calc_brood_dense_prob(hive)
+          brood_density_prob_array <- calc_brood_dense_prob(hive)
+        
+          #Now we have bees eat
+          honey_eaten <- 0
+          honey_eat_attempts <- 0
           
-            #Now we have bees eat
-            honey_eaten <- 0
-            honey_eat_attempts <- 0
-            
-            #We want to make sure that they don't eat more than they should
-            # to keep it balanced
-            while(honey_eaten < HONEY_EATEN_PER_HOUR && honey_eat_attempts < HONEY_BY_HOUR){
-              #eating_output <- eat_products_m2(hive,brood_density_prob_array,HONEY)
-              #eating_output <- eat_products(hive,HONEY)
-              eating_output <- eat_products_random(hive,HONEY)
-              hive <- eating_output[[1]]
-              honey_eaten <- honey_eaten + eating_output[[2]]
-              honey_eat_attempts <- honey_eat_attempts + 1
-            }
-            
+          #We want to make sure that they don't eat more than they should
+          # to keep it balanced
+          while(honey_eaten < HONEY_EATEN_PER_HOUR && honey_eat_attempts < HONEY_BY_HOUR){
+            eating_output <- eat_products_m2(hive,brood_density_prob_array,HONEY)
+            #eating_output <- eat_products(hive,HONEY)
+            #eating_output <- eat_products_random(hive,HONEY)
+            hive <- eating_output[[1]]
+            honey_eaten <- honey_eaten + eating_output[[2]]
+            honey_eat_attempts <- honey_eat_attempts + 1
+          }
+          
         } else if(o == 4){
           
-            #brood_density_prob_array <- calc_brood_dense_prob(hive)
-            
-            pollen_eaten <- 0
-            pollen_eat_attempts <- 0
-            
-            while(pollen_eaten < POLLEN_EATEN_PER_HOUR && pollen_eat_attempts < POLLEN_BY_HOUR){
-              #eating_output <- eat_products_m2(hive,brood_density_prob_array,HONEY)
-              #eating_output <- eat_products(hive,POLLEN)
-              eating_output <- eat_products_random(hive,POLLEN)
-              hive <- eating_output[[1]]
-              pollen_eaten <- pollen_eaten + eating_output[[2]]
-              pollen_eat_attempts <- pollen_eat_attempts + 1
-            }
-            
+          brood_density_prob_array <- calc_brood_dense_prob(hive)
+          
+          pollen_eaten <- 0
+          pollen_eat_attempts <- 0
+          
+          while(pollen_eaten < POLLEN_EATEN_PER_HOUR && pollen_eat_attempts < POLLEN_BY_HOUR){
+            eating_output <- eat_products_m2(hive,brood_density_prob_array,HONEY)
+            #eating_output <- eat_products(hive,POLLEN)
+            #eating_output <- eat_products_random(hive,POLLEN)
+            hive <- eating_output[[1]]
+            pollen_eaten <- pollen_eaten + eating_output[[2]]
+            pollen_eat_attempts <- pollen_eat_attempts + 1
+          }
+          
         } else if(o == 5){
-            #And then we have the queen lay brood
-            for(i in 1:QUEEN_CELLS_PER_HOUR){
-              queen$move_to_center()
-              #queen$move()
-              hive <- queen$lay_brood(hive)
-            }
+          #And then we have the queen lay brood
+          for(i in 1:QUEEN_CELLS_PER_HOUR){
+            queen$move_to_center()
+            #queen$move()
+            hive <- queen$lay_brood(hive)
+          }
           
         } else if(o == 6){
-            #Now we hatch the bees
-            hive <- hatch_brood(hive,h)
+          #Now we hatch the bees
+          hive <- hatch_brood(hive,h)
         }
         
       }
@@ -171,7 +164,8 @@ parameter_df <- foreach(trial = 1:N_TRIALS, .combine='rbind') %dopar%{
     hive <- age_brood(hive)
   }
   
-  data_out <- tibble(days = N_DAYS,
+  data_out <- tibble(trial_n = trial,
+                     days = N_DAYS,
                      n = QUEEN_CELLS_PER_HOUR,
                      rb = BROOD_RADIUS,
                      rn = NECTER_CONSUMP_RAD,
@@ -187,14 +181,14 @@ parameter_df <- foreach(trial = 1:N_TRIALS, .combine='rbind') %dopar%{
                      broodMetric = brood_metric(hive),
                      pollenRing = pollen_ring_metric(hive))
   
-  write.csv(data_out,paste0("hive_data/Beehive Data Out Trial ",trial,Sys.time(),".csv"))
+  write.csv(data_out,paste0("hive_data/Beehive Data Out Trial ",str_pad(trial + trial_add, 5, pad = "0"),".csv"))
+  
+  ggsave(paste0("hive_plots/hiveplot_",str_pad((d-1)*24+h, 5, pad = "0"),
+                "_D",str_pad(d, 3, pad = "0"),
+                "_T",str_pad(trial + trial_add, 5, pad = "0"),".pdf"),
+         hive_matrix_to_graph(hive,queen),width=7, height=7)
   
   data_out
 }
 
 write.csv(parameter_df,paste0("Beehive Data Out ",Sys.time(),".csv"))
-
-```
-
-
-

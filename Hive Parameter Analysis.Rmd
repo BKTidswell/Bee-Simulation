@@ -1,0 +1,57 @@
+---
+title: "Hive Parameter Analysis"
+output: html_notebook
+---
+
+```{r Load Packages}
+library(dplyr)
+library(ggplot2)
+library(readr)
+```
+
+```{r Read in Data}
+
+bee_param_df <- list.files(path="hive_data/", full.names = TRUE) %>% 
+                lapply(read_csv, show_col_types = FALSE) %>% 
+                bind_rows
+
+```
+
+What these all mean:
+n = queen cells per hour
+rb = brood radius
+rn = necter radius
+w = total daily honey
+pph = pollen ratio
+ph = honey consumption ratio
+pp = pollen consumption ratio
+k = consumption probability value
+
+broodMetric = average number of brood surrounding other brood
+pollenRing = average min distance between honey and brood
+
+```{r Overall Brood and Pollen}
+
+ggplot(bee_param_df, aes(x = broodMetric, y = pollenRing))+
+  geom_point(alpha = 0.25)+
+  ylim(0,16)+
+  xlim(0,6)+
+  theme_classic()
+
+```
+
+```{r Brood Metric GLMs}
+broodMetricGLM_m0 <- glm(broodMetric ~ 1, data = bee_param_df)
+broodMetricGLM_m1 <- glm(broodMetric ~ n + rb + rn + w + pph + ph + pp + k, data = bee_param_df)
+broodMetricGLM_step <- step(broodMetricGLM_m0, direction = "both", scope = formula(broodMetricGLM_m1), trace = 0)
+
+summary(broodMetricGLM_step)
+```
+
+```{r Pollen Ring GLMs}
+pollenRingGLM_m0 <- glm(pollenRing ~ 1, data = bee_param_df)
+pollenRingGLM_m1 <- glm(pollenRing ~ n + rb + rn + w + pph + ph + pp + k, data = bee_param_df)
+pollenRingGLM_step <- step(pollenRingGLM_m0, direction = "both", scope = formula(pollenRingGLM_m1), trace = 0)
+
+summary(pollenRingGLM_step)
+```
