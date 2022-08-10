@@ -68,6 +68,11 @@ ui <- fluidPage(
                   min = 0.9, max = 1.1,
                   value = 1, step = 0.05),
       
+      sliderInput(inputId = "N_DAYS",
+                  label = "Days to Run",
+                  min = 1, max = 60,
+                  value = 30, step = 5),
+      
       actionButton("new_hive", "Reset Hive")
       
     ),
@@ -83,21 +88,34 @@ ui <- fluidPage(
 )
 
 # Define server logic ----
-server <- function(input, output) {
+server <- function(input, output, session) {
   
-  observeEvent(input$new_hive, {
-    hive <- make_set_hive()
+  autoInvalidate <- reactiveTimer(1000)
+  
+  values <- reactiveValues(hive = NULL)
 
-    output$distPlot <- renderPlot({hive_matrix_to_graph(hive,c())})
+  # observeEvent(input$new_hive, {
+  #   values$hive <- make_set_hive()
+  # })
+  
+  observe({
+    isolate({
+      for(i in 1:5){
+        values$hive <- make_set_hive()
+      }
+    })
+    if (1 < 2){
+      invalidateLater(0, session)
+    }
   })
   
   output$distPlot <- renderPlot({
-    
-    hive_matrix_to_graph(hive,c())
-    
+    hive_matrix_to_graph(values$hive,c())
   })
   
 }
+
+
 
 # Create Shiny app ----
 shinyApp(ui = ui, server = server)
