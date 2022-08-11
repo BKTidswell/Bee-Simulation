@@ -2,6 +2,9 @@
 
 #To set up the hive
 
+BROOD_RADIUS <- 7 #18
+POLLEN_WIDTH <- 2 #4
+
 #"Unless specified, each model run was initiated with a completely full comb 
 # with an ideal pattern of a center region of brood, surrounded by a ring of 
 # pollen, and honey in all remaining cells. The assignment of type to each cell 
@@ -11,8 +14,6 @@
 # the comb is filled with honey."
 
 make_set_hive <- function(){
-  BROOD_RADIUS <- 18
-  POLLEN_WIDTH <- 4
   
   #Second two rows are for brood honey and pollen
   set_hive <- array(c(rep(HONEY,MAX_ROWS*MAX_COLS),

@@ -4,8 +4,8 @@ POLLEN <- 2
 HONEY <- 3 
 EMPTY <- 0
 
-MAX_ROWS <- 75
-MAX_COLS <- 45
+MAX_ROWS <- 30 #75
+MAX_COLS <- 21 #45
 
 # Makes the beehive graph framework
 # https://stackoverflow.com/questions/24006361/plot-series-of-filled-hexagons-in-ggplot2
