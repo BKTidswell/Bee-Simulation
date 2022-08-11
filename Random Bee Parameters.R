@@ -2,6 +2,8 @@ MAX_HONEY <- 25
 MAX_POLLEN <- 12
 MAX_BROOD <- 21
 
+days_to_run <- 30
+
 #n
 
 QUEEN_CELLS_PER_HOUR <- sample(15:40,1) #sample(60:120,1)

@@ -100,12 +100,14 @@ ui <- fluidPage(
     
     # Main panel for displaying outputs ----
     mainPanel(width = 8,
-      
-      textOutput("number_days", inline = TRUE),
-      
-      # Output: Histogram ----
-      plotOutput(outputId = "distPlot"),
-      
+              
+      # Output: Tabset w/ plot, summary, and table ----
+      tabsetPanel(type = "tabs",
+                  tabPanel("Hive", textOutput("number_days"),
+                                   plotOutput(outputId = "hivePlot")),
+                  tabPanel("Contents", plotOutput(outputId = "trendPlot"))
+      ),
+    
       tags$style(type='text/css', "#number_days { text-align: center; font-size: 30px; display: block;}")
       
     )
@@ -150,6 +152,11 @@ server <- function(input, output, session) {
     HONEY_EATEN_PER_HOUR <<- ceiling((TOTAL_DAILY_HONEY*HONEY_CONSUMPTION_RATIO)/24)
     POLLEN_EATEN_PER_HOUR <<- ceiling((TOTAL_DAILY_HONEY*POLLEN_RATIO*POLLEN_CONSUMPTION_RATIO)/24)
     
+    values$Count_Contents <<- tibble(Brood = length(which(values$hive[,,1] == BROOD)),
+                             Honey = length(which(values$hive[,,1] == HONEY)),
+                             Pollen = length(which(values$hive[,,1] == POLLEN)),
+                             Empty = length(which(values$hive[,,1] == EMPTY)))
+    
     values$counter <- 0
   })
   
@@ -177,6 +184,11 @@ server <- function(input, output, session) {
         values$counter <- values$counter + 1
         hour <- ((values$counter-1) %% 24) + 1
         values$hive <- runOneHour(values$hive,values$queen,hour)
+        
+        values$Count_Contents <<- values$Count_Contents %>% add_row(Brood = length(which(values$hive[,,1] == BROOD)),
+                                                     Honey = length(which(values$hive[,,1] == HONEY)),
+                                                     Pollen = length(which(values$hive[,,1] == POLLEN)),
+                                                     Empty = length(which(values$hive[,,1] == EMPTY)))
       }
     })
     if (values$counter < input$N_DAYS*24){
@@ -184,8 +196,12 @@ server <- function(input, output, session) {
     }
   })
   
-  output$distPlot <- renderPlot({
+  output$hivePlot <- renderPlot({
     hive_matrix_to_graph(values$hive,c())
+  }, height = 800)
+  
+  output$trendPlot <- renderPlot({
+    graph_trends(values$Count_Contents,input$N_DAYS)
   }, height = 800)
   
   output$number_days <- renderText({

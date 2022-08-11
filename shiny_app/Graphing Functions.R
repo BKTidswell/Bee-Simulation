@@ -80,14 +80,20 @@ hive_matrix_to_graph <- function(hive_data,queen){
 
 #Graphs the trends in contents over time
 
-graph_trends <- function(content_df){
+graph_trends <- function(content_df,max_days){
   Count_Contents_Percent <- tibble(content_df/(MAX_ROWS*MAX_COLS)) %>% mutate(days = (1:n())/24) %>%
     pivot_longer(c(Brood,Honey,Pollen,Empty))
   
   g <- ggplot(Count_Contents_Percent, aes(x = days, y = value, color = name))+
     scale_color_manual(values = hive_colors)+
     geom_line()+
+    xlim(0,max_days)+
+    ggtitle("Percent Makeup of Contents in the Hive")+
+    ylab("Percent (%)")+
+    xlab("Day")+
+    guides(color=guide_legend(title="Contents"))+
     theme_classic()
+    
   
   return(g)
 }
