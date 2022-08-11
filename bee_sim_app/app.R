@@ -7,14 +7,16 @@ library(forcats)
 library(reshape2)
 library(R6)
 
-source("Bee Parameters.R")
-source("Graphing Functions.R")
-source("Hive Cell Finder Functions.R")
-source("Hive Setup Functions.R")
-source("Honey Pollen Brood Functions.R")
-source("Queen Def.R")
-source("Final Measures.R")
-source("Simulation Script.R")
+source("bee_sim_app/Random Bee Parameters.R")
+source("bee_sim_app/Graphing Functions.R")
+source("bee_sim_app/Hive Cell Finder Functions.R")
+source("bee_sim_app/Hive Setup Functions.R")
+source("bee_sim_app/Honey Pollen Brood Functions.R")
+source("bee_sim_app/Queen Def.R")
+source("bee_sim_app/Final Measures.R")
+source("bee_sim_app/Simulation Script.R")
+
+#deployApp(appDir = "/Users/Ben/Desktop/Bee-Simulation/bee_sim_app")
 
 hive <- make_set_hive()
 
@@ -87,7 +89,7 @@ ui <- fluidPage(
           
           sliderInput(inputId = "N_DAYS",
                       label = "Days to Run",
-                      min = 1, max = 60,
+                      min = 5, max = 60,
                       value = 30, step = 5),
           
           actionButton("run_hive", "Run Simulation"),
@@ -145,6 +147,8 @@ server <- function(input, output, session) {
     #k
     K <<- input$k
     
+    N_DAYS <<- input$N_DAYS
+    
     #Only collecting during the day
     HONEY_BY_HOUR <<- ceiling(TOTAL_DAILY_HONEY/12)
     POLLEN_BY_HOUR <<- ceiling((TOTAL_DAILY_HONEY*POLLEN_RATIO)/12)
@@ -180,7 +184,7 @@ server <- function(input, output, session) {
   
   observe({
     isolate({
-      if (values$counter < input$N_DAYS*24){
+      if (values$counter < N_DAYS*24){
         values$counter <- values$counter + 1
         hour <- ((values$counter-1) %% 24) + 1
         values$hive <- runOneHour(values$hive,values$queen,hour)
@@ -191,7 +195,7 @@ server <- function(input, output, session) {
                                                      Empty = length(which(values$hive[,,1] == EMPTY)))
       }
     })
-    if (values$counter < input$N_DAYS*24){
+    if (values$counter < N_DAYS*24){
       invalidateLater(0, session)
     }
   })
@@ -201,7 +205,7 @@ server <- function(input, output, session) {
   }, height = 800)
   
   output$trendPlot <- renderPlot({
-    graph_trends(values$Count_Contents,input$N_DAYS)
+    graph_trends(values$Count_Contents,N_DAYS)
   }, height = 800)
   
   output$number_days <- renderText({

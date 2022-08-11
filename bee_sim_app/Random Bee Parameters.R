@@ -2,9 +2,10 @@ MAX_HONEY <- 25
 MAX_POLLEN <- 12
 MAX_BROOD <- 21
 
-#n
+N_DAYS <- 30
 
-QUEEN_CELLS_PER_HOUR <- sample(60:120,1)
+#n
+QUEEN_CELLS_PER_HOUR <- sample(15:40,1) #sample(60:120,1)
 
 #r_b
 BROOD_RADIUS <- sample(2:4,1)
@@ -12,7 +13,7 @@ BROOD_RADIUS <- sample(2:4,1)
 NECTER_CONSUMP_RAD <- sample(1:4,1)
 
 #omega
-TOTAL_DAILY_HONEY <- sample(1000:4000,1)
+TOTAL_DAILY_HONEY <- sample(200:1000,1) #sample(1000:4000,1)
 
 #p_ph
 POLLEN_RATIO <- runif(1,0.2,1)
