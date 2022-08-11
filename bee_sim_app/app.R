@@ -7,14 +7,14 @@ library(forcats)
 library(reshape2)
 library(R6)
 
-source("bee_sim_app/Random Bee Parameters.R")
-source("bee_sim_app/Graphing Functions.R")
-source("bee_sim_app/Hive Cell Finder Functions.R")
-source("bee_sim_app/Hive Setup Functions.R")
-source("bee_sim_app/Honey Pollen Brood Functions.R")
-source("bee_sim_app/Queen Def.R")
-source("bee_sim_app/Final Measures.R")
-source("bee_sim_app/Simulation Script.R")
+source("Random Bee Parameters.R")
+source("Graphing Functions.R")
+source("Hive Cell Finder Functions.R")
+source("Hive Setup Functions.R")
+source("Honey Pollen Brood Functions.R")
+source("Queen Def.R")
+source("Final Measures.R")
+source("Simulation Script.R")
 
 #deployApp(appDir = "/Users/Ben/Desktop/Bee-Simulation/bee_sim_app")
 
@@ -107,10 +107,12 @@ ui <- fluidPage(
       tabsetPanel(type = "tabs",
                   tabPanel("Hive", textOutput("number_days"),
                                    plotOutput(outputId = "hivePlot")),
-                  tabPanel("Contents", plotOutput(outputId = "trendPlot"))
+                  tabPanel("Contents", textOutput("ggtitleText"),
+                           plotOutput(outputId = "trendPlot"))
       ),
     
-      tags$style(type='text/css', "#number_days { text-align: center; font-size: 30px; display: block;}")
+      tags$style(type='text/css', "#number_days { text-align: center; font-size: 30px; display: block;}"),
+      tags$style(type='text/css', "#ggtitleText { text-align: center; font-size: 30px; display: block;}")
       
     )
   )
@@ -123,6 +125,10 @@ server <- function(input, output, session) {
   values$hive <- make_set_hive()
   values$queen <- Queen$new(median(hexdat_centers$x),median(hexdat_centers$y))
   values$counter <- 9999
+  values$Count_Contents <- tibble(Brood = 0,
+                                   Honey = 0,
+                                   Pollen = 0,
+                                   Empty = 0)
   
   observeEvent(input$run_hive, {
     #n
@@ -157,9 +163,9 @@ server <- function(input, output, session) {
     POLLEN_EATEN_PER_HOUR <<- ceiling((TOTAL_DAILY_HONEY*POLLEN_RATIO*POLLEN_CONSUMPTION_RATIO)/24)
     
     values$Count_Contents <<- tibble(Brood = length(which(values$hive[,,1] == BROOD)),
-                             Honey = length(which(values$hive[,,1] == HONEY)),
-                             Pollen = length(which(values$hive[,,1] == POLLEN)),
-                             Empty = length(which(values$hive[,,1] == EMPTY)))
+                                     Honey = length(which(values$hive[,,1] == HONEY)),
+                                     Pollen = length(which(values$hive[,,1] == POLLEN)),
+                                     Empty = length(which(values$hive[,,1] == EMPTY)))
     
     values$counter <- 0
   })
@@ -202,11 +208,11 @@ server <- function(input, output, session) {
   
   output$hivePlot <- renderPlot({
     hive_matrix_to_graph(values$hive,c())
-  }, height = 800)
+  }, height = 700)
   
   output$trendPlot <- renderPlot({
     graph_trends(values$Count_Contents,N_DAYS)
-  }, height = 800)
+  }, height = 700)
   
   output$number_days <- renderText({
     if(values$counter == 9999){
@@ -216,9 +222,11 @@ server <- function(input, output, session) {
     }
   })
   
+  output$ggtitleText <- renderText({
+    "Percent Makeup of Contents in the Hive"
+  })
+  
 }
-
-
 
 # Create Shiny app ----
 shinyApp(ui = ui, server = server)

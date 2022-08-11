@@ -73,7 +73,15 @@ hive_matrix_to_graph <- function(hive_data,queen){
     geom_polygon(new_hexdat, mapping = aes(x,y,group = id, fill = named_content, alpha = amount), colour = "black") +
     scale_fill_manual(values=hive_colors) +
     coord_fixed() +
-    theme_classic()
+    guides(fill=guide_legend(title="Contents")) +
+    guides(alpha=guide_legend(title="Proportion Full")) +
+    theme_classic() +
+    theme(axis.line=element_blank(),axis.text.x=element_blank(),
+            axis.text.y=element_blank(),axis.ticks=element_blank(),
+            axis.title.x=element_blank(),
+            axis.title.y=element_blank(),
+            panel.background=element_blank(),panel.border=element_blank(),panel.grid.major=element_blank(),
+            panel.grid.minor=element_blank(),plot.background=element_blank())
   
   return(g)
 }
@@ -84,13 +92,14 @@ graph_trends <- function(content_df,max_days){
   Count_Contents_Percent <- tibble(content_df/(MAX_ROWS*MAX_COLS)) %>% mutate(days = (1:n())/24) %>%
     pivot_longer(c(Brood,Honey,Pollen,Empty))
   
-  g <- ggplot(Count_Contents_Percent, aes(x = days, y = value, color = name))+
+  g <- ggplot(Count_Contents_Percent, aes(x = days, y = value*100, color = name))+
     scale_color_manual(values = hive_colors)+
     geom_line()+
     xlim(0,max_days)+
-    ggtitle("Percent Makeup of Contents in the Hive")+
+    #ggtitle("Percent Makeup of Contents in the Hive")+
     ylab("Percent (%)")+
     xlab("Day")+
+    ylim(0,100)+
     guides(color=guide_legend(title="Contents"))+
     theme_classic()
     
