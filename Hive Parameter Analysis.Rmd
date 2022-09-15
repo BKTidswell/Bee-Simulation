@@ -59,6 +59,10 @@ ggplot(bee_param_df_perc, aes(x = type, y = value, fill = name))+
   geom_boxplot()+
   theme_classic()
 
+ggplot(m1_bee_param, aes(x = pPollen, y = pph))+
+  geom_point()+
+  theme_classic()
+
 ```
 
 ```{r Brood Metric GLMs}

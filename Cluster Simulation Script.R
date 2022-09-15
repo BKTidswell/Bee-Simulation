@@ -137,7 +137,7 @@ parameter_df <- foreach(trial = 1:N_TRIALS, .combine='rbind') %dopar%{
           pollen_eat_attempts <- 0
           
           while(pollen_eaten < POLLEN_EATEN_PER_HOUR && pollen_eat_attempts < POLLEN_BY_HOUR){
-            eating_output <- eat_products_m2(hive,brood_density_prob_array,HONEY)
+            eating_output <- eat_products_m2(hive,brood_density_prob_array,POLLEN)
             #eating_output <- eat_products(hive,POLLEN)
             #eating_output <- eat_products_random(hive,POLLEN)
             hive <- eating_output[[1]]
