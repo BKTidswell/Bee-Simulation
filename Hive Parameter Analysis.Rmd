@@ -4,16 +4,18 @@ output: html_notebook
 ---
 
 ```{r Load Packages}
-library(dplyr)
+library(tidyverse)
 library(ggplot2)
 library(readr)
 ```
 
 ```{r Read in Data}
 
-bee_param_df <- list.files(path="hive_data/", full.names = TRUE) %>% 
+bee_param_df <- list.files(path="hive_data/m1_eating/", full.names = TRUE) %>% 
                 lapply(read_csv, show_col_types = FALSE) %>% 
                 bind_rows
+
+write.csv(bee_param_df,"bee_data_isaac_m1.csv",row.names = FALSE)
 
 ```
 
@@ -30,12 +32,31 @@ k = consumption probability value
 broodMetric = average number of brood surrounding other brood
 pollenRing = average min distance between honey and brood
 
+```{r}
+rand_bee_param <- read.csv("bee_data_isaac_rand.csv") %>% mutate(type = "Rand")
+m1_bee_param <- read.csv("bee_data_isaac_m1.csv") %>% mutate(type = "M1") %>% select(-trial_n)
+m2_bee_param <- read.csv("bee_data_isaac_m2.csv") %>% mutate(type = "M2") %>% select(-trial_n)
+
+bee_param_df <- rbind(m1_bee_param,m2_bee_param) %>% rbind(.,rand_bee_param)
+```
+
+
+```{r}
+bee_param_df_perc <- bee_param_df %>% select(c(type,pBrood,pHoney,pPollen,pEmpty)) %>%
+                                      pivot_longer(c(pBrood,pHoney,pPollen,pEmpty))
+```
+
+
 ```{r Overall Brood and Pollen}
 
-ggplot(bee_param_df, aes(x = broodMetric, y = pollenRing))+
+ggplot(bee_param_df, aes(x = broodMetric, y = pollenRing, color = type))+
   geom_point(alpha = 0.25)+
   ylim(0,16)+
   xlim(0,6)+
+  theme_classic()
+
+ggplot(bee_param_df_perc, aes(x = type, y = value, fill = name))+
+  geom_boxplot()+
   theme_classic()
 
 ```
