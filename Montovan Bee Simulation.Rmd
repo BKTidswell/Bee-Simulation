@@ -33,6 +33,19 @@ source("Honey Pollen Brood Functions.R")
 source("Queen Def.R")
 ```
 
+```{r}
+
+library(profvis)
+
+hive <- make_set_hive()
+
+profvis({
+  calc_brood_dense_prob(hive)
+})
+
+```
+
+
 
 # Simulation
 
@@ -43,7 +56,7 @@ Hive levels
 
 ```{r Run Simulation, warning = FALsSE}
 N_TRIALS <- 1
-N_DAYS <- 20
+N_DAYS <- 1
 
 #To keep track of the data overall
 parameter_df <- tibble(days = 0,
@@ -78,7 +91,7 @@ for(trial in 1:N_TRIALS){
   print(paste0("Day ",d))
   
   #24 hours in a day
-    for(h in 1:24){
+    for(h in 1:1){
       print(h)
       #This is to give the actions a random order
       # 1: Collecting Honey

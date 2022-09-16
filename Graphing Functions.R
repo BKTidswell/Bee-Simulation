@@ -30,6 +30,17 @@ hex_center_ys_df <- melt(cbind(id = 1:length(hex_center_ys), as.data.frame(hex_c
 hexdat_centers <- full_join(hex_center_xs_df, hex_center_ys_df, by = "id") %>% mutate(Xind = ((id-1)%%MAX_COLS)+1,
                                                                                       Yind = ceiling(id/MAX_COLS))
 
+#These are to not have to filter to find values, easier to lookup in m2
+x_center_mat <- hexdat_centers %>% select(x,Xind,Yind) %>% 
+  pivot_wider(names_from = Yind, values_from = x) %>% 
+  select(-Xind) %>% 
+  as.matrix()
+
+y_center_mat <- hexdat_centers %>% select(y,Xind,Yind) %>% 
+  pivot_wider(names_from = Yind, values_from = y) %>% 
+  select(-Xind) %>% 
+  as.matrix()
+
 MAX_X <- max(hex_center_xs)
 MAX_Y <- max(hex_center_ys)
 
