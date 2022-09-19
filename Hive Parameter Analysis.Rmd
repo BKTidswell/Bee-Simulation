@@ -11,11 +11,11 @@ library(readr)
 
 ```{r Read in Data}
 
-bee_param_df <- list.files(path="hive_data/m1_eating/", full.names = TRUE) %>% 
+bee_param_df <- list.files(path="hive_data/m2_eating/", full.names = TRUE) %>% 
                 lapply(read_csv, show_col_types = FALSE) %>% 
                 bind_rows
 
-write.csv(bee_param_df,"bee_data_isaac_m1.csv",row.names = FALSE)
+write.csv(bee_param_df,"bee_data_isaac_m2.csv",row.names = FALSE)
 
 ```
 
@@ -36,8 +36,9 @@ pollenRing = average min distance between honey and brood
 rand_bee_param <- read.csv("bee_data_isaac_rand.csv") %>% mutate(type = "Rand")
 m1_bee_param <- read.csv("bee_data_isaac_m1.csv") %>% mutate(type = "M1") %>% select(-trial_n)
 m2_bee_param <- read.csv("bee_data_isaac_m2.csv") %>% mutate(type = "M2") %>% select(-trial_n)
+#m2B_bee_param <- read.csv("bee_data_isaac_m2_BUGGED.csv") %>% mutate(type = "M2B") %>% select(-trial_n)
 
-bee_param_df <- rbind(m1_bee_param,m2_bee_param) %>% rbind(.,rand_bee_param)
+bee_param_df <- rbind(m1_bee_param,m2_bee_param) %>% rbind(.,rand_bee_param) #%>% rbind(.,m2B_bee_param)
 ```
 
 
@@ -66,16 +67,16 @@ ggplot(m1_bee_param, aes(x = pPollen, y = pph))+
 ```
 
 ```{r Brood Metric GLMs}
-broodMetricGLM_m0 <- glm(broodMetric ~ 1, data = bee_param_df)
-broodMetricGLM_m1 <- glm(broodMetric ~ n + rb + rn + w + pph + ph + pp + k, data = bee_param_df)
+broodMetricGLM_m0 <- glm(broodMetric ~ 1, data = m2_bee_param)
+broodMetricGLM_m1 <- glm(broodMetric ~ n + rb + rn + w + pph + ph + pp + k, data = m2_bee_param)
 broodMetricGLM_step <- step(broodMetricGLM_m0, direction = "both", scope = formula(broodMetricGLM_m1), trace = 0)
 
 summary(broodMetricGLM_step)
 ```
 
 ```{r Pollen Ring GLMs}
-pollenRingGLM_m0 <- glm(pollenRing ~ 1, data = bee_param_df)
-pollenRingGLM_m1 <- glm(pollenRing ~ n + rb + rn + w + pph + ph + pp + k, data = bee_param_df)
+pollenRingGLM_m0 <- glm(pollenRing ~ 1, data = m2_bee_param)
+pollenRingGLM_m1 <- glm(pollenRing ~ n + rb + rn + w + pph + ph + pp + k, data = m2_bee_param)
 pollenRingGLM_step <- step(pollenRingGLM_m0, direction = "both", scope = formula(pollenRingGLM_m1), trace = 0)
 
 summary(pollenRingGLM_step)
