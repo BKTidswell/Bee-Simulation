@@ -91,7 +91,7 @@ for(trial in 1:N_TRIALS){
   print(paste0("Day ",d))
   
   #24 hours in a day
-    for(h in 1:1){
+    for(h in 1:24){
       print(h)
       #This is to give the actions a random order
       # 1: Collecting Honey

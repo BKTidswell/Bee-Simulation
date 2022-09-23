@@ -67,9 +67,15 @@ get_brood_density <- function(x_ind,y_ind,hive_data){
   #We can just cbind since the ids are all in order the whole way down
   new_hex_dist <- cbind(hex_dist,hive_data) %>% filter(contents == BROOD) %>% filter(dist <= NECTER_CONSUMP_RAD)
   
-  distance_to_all_brood <- sum(new_hex_dist$dist)
+  ###Shouldn't be distance here! Should just be number of cells
+  #Might need to rescale better there
   
-  return(distance_to_all_brood/(3*NECTER_CONSUMP_RAD*(NECTER_CONSUMP_RAD+1)))
+  #distance_to_all_brood <- sum(new_hex_dist$dist)
+  
+  number_of_brood <- length(new_hex_dist$dist)
+  
+  #return(distance_to_all_brood/(3*NECTER_CONSUMP_RAD*(NECTER_CONSUMP_RAD+1)))
+  return(number_of_brood/(3*NECTER_CONSUMP_RAD*(NECTER_CONSUMP_RAD+1)))
 }
 
 #Get whole hive brood selection probability
