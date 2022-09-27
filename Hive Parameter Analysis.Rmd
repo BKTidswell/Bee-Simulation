@@ -11,11 +11,11 @@ library(readr)
 
 ```{r Read in Data}
 
-bee_param_df <- list.files(path="hive_data/m2_empty/", full.names = TRUE) %>% 
+bee_param_df <- list.files(path="hive_data/m2_katie/", full.names = TRUE) %>% 
                 lapply(read_csv, show_col_types = FALSE) %>% 
                 bind_rows
 
-write.csv(bee_param_df,"bee_data_isaac_m2_empty.csv",row.names = FALSE)
+write.csv(bee_param_df,"bee_data_isaac_m2_katie.csv",row.names = FALSE)
 
 ```
 
@@ -37,8 +37,9 @@ rand_bee_param <- read.csv("bee_data_isaac_rand.csv") %>% mutate(type = "Rand")
 m1_bee_param <- read.csv("bee_data_isaac_m1.csv") %>% mutate(type = "M1") %>% select(-trial_n)
 m2_bee_param <- read.csv("bee_data_isaac_m2.csv") %>% mutate(type = "M2") %>% select(-trial_n)
 m2E_bee_param <- read.csv("bee_data_isaac_m2_empty.csv") %>% mutate(type = "M2E") %>% select(-trial_n)
+m2K_bee_param <- read.csv("bee_data_isaac_m2_katie.csv") %>% mutate(type = "M2K") %>% select(-trial_n)
 
-bee_param_df <- rbind(m1_bee_param,m2_bee_param) %>% rbind(.,rand_bee_param) %>% rbind(.,m2E_bee_param)
+bee_param_df <- rbind(m1_bee_param,m2_bee_param) %>% rbind(.,rand_bee_param) %>% rbind(.,m2E_bee_param) %>% rbind(.,m2K_bee_param)
 ```
 
 
