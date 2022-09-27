@@ -81,6 +81,11 @@ for(trial in 1:N_TRIALS){
                            Honey = length(which(hive[,,1] == HONEY)),
                            Pollen = length(which(hive[,,1] == POLLEN)),
                            Empty = length(which(hive[,,1] == EMPTY)))
+  
+  Count_Heat_Contents <- tibble(Brood = get_percent_in_heat(hive,BROOD),
+                           Honey = get_percent_in_heat(hive,HONEY),
+                           Pollen = get_percent_in_heat(hive,POLLEN),
+                           Empty = get_percent_in_heat(hive,EMPTY))
 
   for(d in 1:N_DAYS){
   print(paste0("Day ",d))
@@ -169,7 +174,11 @@ for(trial in 1:N_TRIALS){
                                                    Honey = length(which(hive[,,1] == HONEY)),
                                                    Pollen = length(which(hive[,,1] == POLLEN)),
                                                    Empty = length(which(hive[,,1] == EMPTY)))
-  
+      
+      Count_Heat_Contents <- Count_Heat_Contents %>% add_row(Brood = get_percent_in_heat(hive,BROOD),
+                                                             Honey = get_percent_in_heat(hive,HONEY),
+                                                             Pollen = get_percent_in_heat(hive,POLLEN),
+                                                             Empty = get_percent_in_heat(hive,EMPTY))
       #Now graph for that hour
       #Each one takes about 0.3 s
       ggsave(paste0("hive_plots/hiveplot_",str_pad((d-1)*24+h, 5, pad = "0"),

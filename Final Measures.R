@@ -59,4 +59,22 @@ pollen_ring_metric <- function(hive_data){
   return(mean(pollen_ring_df$dist_honey_brood))
 }
 
+#Get the percent of contents in the heated area
+get_percent_in_heat <- function(hive_data,contents){
+  HEAT_RADIUS <- 9
+  
+  all_in_heat <- hexes_in_rad(HEAT_CENTER_X,HEAT_CENTER_Y,HEAT_RADIUS)
+  
+  count <- 0
+  
+  for(i in 1:length(all_in_heat[[1]])){
+    x <- all_in_heat[[1]][i]
+    y <- all_in_heat[[2]][i]
+    if(hive_data[y,x,1] == contents){
+      count <- count+1
+    }
+  }
+  
+  return(count/length(all_in_heat[[1]]))
+}
 

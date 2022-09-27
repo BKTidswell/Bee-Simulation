@@ -25,6 +25,12 @@ POLLEN_CONSUMPTION_RATIO <- runif(1,0.9,1.1)
 #k
 K <- runif(1,5,20)
 
+#Brood Heat Death Chance
+BROOD_HEAT_DEATH <- runif(1,0,1)
+
+#Worker Heat Avoidance
+WORKER_HEAT_AVOIDANCE <- runif(1,0,1)
+
 #Only collecting during the day
 HONEY_BY_HOUR <- ceiling(TOTAL_DAILY_HONEY/12)
 POLLEN_BY_HOUR <- ceiling((TOTAL_DAILY_HONEY*POLLEN_RATIO)/12)

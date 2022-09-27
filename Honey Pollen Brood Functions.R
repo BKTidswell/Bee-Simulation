@@ -17,6 +17,33 @@ collect_products <- function(hive_data,product,product_max){
       hive_data[rand_y,rand_x,2] <- 1
       break
     }
+    
+  }
+  return(hive_data)
+}
+
+#Collecting products but with heat
+
+collect_products_heat <- function(hive_data,product,product_max){
+  for(i in 1:N_ATTEMPTS){
+    rand_x <- sample(1:MAX_COLS,1)
+    rand_y <- sample(1:MAX_ROWS,1)
+    
+    #If the place has heat adn you "roll" under work avoidence then try again
+    if((hive_data[rand_y,rand_x,1] == 1) && (runif(1) <= WORKER_HEAT_AVOIDANCE)){
+      break
+    } else{
+      #Otherwise put things there as normal
+      if(hive_data[rand_y,rand_x,1] == product && hive_data[rand_y,rand_x,2] < product_max){
+        hive_data[rand_y,rand_x,2] <- hive_data[rand_y,rand_x,2] + 1
+        break
+      } else if(hive_data[rand_y,rand_x,1] == EMPTY){
+        hive_data[rand_y,rand_x,1] <- product
+        hive_data[rand_y,rand_x,2] <- 1
+        break
+      }
+    }
+    
   }
   return(hive_data)
 }
@@ -103,6 +130,25 @@ age_brood <- function(hive_data){
   
   for(i in 1:length(brood_xs)){
     hive_data[brood_ys[i],brood_xs[i],2] <- hive_data[brood_ys[i],brood_xs[i],2] + 1
+  }
+  return(hive_data)
+}
+
+#Here we also check heat first to see if they die
+age_brood_heat <- function(hive_data){
+  #Get the x and y of all brood
+  brood_xs <- data.frame(which(hive_data[,,1] == BROOD,arr.ind = TRUE))$col
+  brood_ys <- data.frame(which(hive_data[,,1] == BROOD,arr.ind = TRUE))$row
+  
+  for(i in 1:length(brood_xs)){
+    hive_data[brood_ys[i],brood_xs[i],2] <- hive_data[brood_ys[i],brood_xs[i],2] + 1
+    
+    #Here we remove them from heat if they "roll" under the heat death chance
+    if((hive_data[brood_ys[i],brood_xs[i],1] == 1) && (runif(1) <= BROOD_HEAT_DEATH)){
+      hive_data[brood_ys[i],brood_xs[i],1] <- EMPTY
+      hive_data[brood_ys[i],brood_xs[i],2] <- 0
+      hive_data[brood_ys[i],brood_xs[i],3] <- 0
+    }
   }
   return(hive_data)
 }
