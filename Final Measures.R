@@ -61,7 +61,7 @@ pollen_ring_metric <- function(hive_data){
 
 #Get the percent of contents in the heated area
 get_percent_in_heat <- function(hive_data,contents){
-  HEAT_RADIUS <- 9
+  HEAT_RADIUS <- 10
   
   all_in_heat <- hexes_in_rad(HEAT_CENTER_X,HEAT_CENTER_Y,HEAT_RADIUS)
   

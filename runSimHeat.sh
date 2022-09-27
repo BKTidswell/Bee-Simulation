@@ -16,5 +16,5 @@ module purge   # clear any inherited modules
 module load R/4.1.1
 
 # Run Rscript in a clean R instance
-Rscript --vanilla --verbose /cluster/home/btidsw01/Bee-Simulation/Cluster_Simulation_Script.R 6000
+Rscript --vanilla --verbose /cluster/home/btidsw01/Bee-Simulation/Cluster_Simulation_Script_Heat.R 6000
 

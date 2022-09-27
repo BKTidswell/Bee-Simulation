@@ -18,7 +18,7 @@
 make_set_hive <- function(){
   BROOD_RADIUS <- 18
   POLLEN_WIDTH <- 4
-  HEAT_RADIUS <- 9
+  HEAT_RADIUS <- 10
   
   #Second two rows are for brood honey and pollen
   set_hive <- array(c(rep(HONEY,MAX_ROWS*MAX_COLS),
@@ -69,6 +69,7 @@ make_set_hive <- function(){
 #This makes the nearly empty hive setup
 make_empty_hive <- function(){
   BROOD_RADIUS <- 1
+  HEAT_RADIUS <- 10
   
   #Second two rows are for brood honey and pollen
   set_hive <- array(c(rep(EMPTY,MAX_ROWS*MAX_COLS),
