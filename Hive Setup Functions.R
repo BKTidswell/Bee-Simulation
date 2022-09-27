@@ -10,14 +10,20 @@
 # Around this brood region is a ring of pollen 4 cell lengths wide. The rest of 
 # the comb is filled with honey."
 
+# Layer 1: Contents
+# Layer 2: Amount (Also Brood Age in Days)
+# Layer 3: Brood Hour of Hatching
+# Layer 4: Heat
+
 make_set_hive <- function(){
   BROOD_RADIUS <- 18
   POLLEN_WIDTH <- 4
+  HEAT_RADIUS <- 9
   
   #Second two rows are for brood honey and pollen
   set_hive <- array(c(rep(HONEY,MAX_ROWS*MAX_COLS),
                       rep(0,MAX_ROWS*MAX_COLS*2)),
-                    dim = c(MAX_ROWS,MAX_COLS, 3))
+                    dim = c(MAX_ROWS,MAX_COLS, 4))
   
   all_to_pollen <- hexes_in_rad(CENTER_X,CENTER_Y,BROOD_RADIUS+POLLEN_WIDTH)
   
@@ -33,6 +39,14 @@ make_set_hive <- function(){
     x <- all_to_brood[[1]][i]
     y <- all_to_brood[[2]][i]
     set_hive[y,x,1] <- BROOD
+  }
+  
+  all_to_heat <- hexes_in_rad(HEAT_CENTER_X,HEAT_CENTER_Y,HEAT_RADIUS)
+  
+  for(i in 1:length(all_to_heat[[1]])){
+    x <- all_to_heat[[1]][i]
+    y <- all_to_heat[[2]][i]
+    set_hive[y,x,4] <- 1
   }
   
   for(x in 1:MAX_COLS){
@@ -58,8 +72,8 @@ make_empty_hive <- function(){
   
   #Second two rows are for brood honey and pollen
   set_hive <- array(c(rep(EMPTY,MAX_ROWS*MAX_COLS),
-                      rep(0,MAX_ROWS*MAX_COLS*2)),
-                    dim = c(MAX_ROWS,MAX_COLS, 3))
+                      rep(0,MAX_ROWS*MAX_COLS*3)),
+                    dim = c(MAX_ROWS,MAX_COLS, 4))
   
   all_to_brood <- hexes_in_rad(CENTER_X,CENTER_Y,BROOD_RADIUS)
   
@@ -80,6 +94,14 @@ make_empty_hive <- function(){
       set_hive[y,x,2] <- layer2_val
       set_hive[y,x,3] <- layer3_val
     }
+  }
+  
+  all_to_heat <- hexes_in_rad(HEAT_CENTER_X,HEAT_CENTER_Y,HEAT_RADIUS)
+  
+  for(i in 1:length(all_to_heat[[1]])){
+    x <- all_to_heat[[1]][i]
+    y <- all_to_heat[[2]][i]
+    set_hive[y,x,4] <- 1
   }
   
   return(set_hive)

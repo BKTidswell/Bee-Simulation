@@ -34,18 +34,13 @@ source("Queen Def.R")
 ```
 
 ```{r}
-
-library(profvis)
+source("Random Bee Parameters.R")
 
 hive <- make_set_hive()
 
-profvis({
-  calc_brood_dense_prob(hive)
-})
+hive_matrix_to_graph(hive,queen)
 
 ```
-
-
 
 # Simulation
 

@@ -5,6 +5,7 @@
 types <- c("Brood", "Pollen", "Honey", "Empty")
 #hive_colors <- c("#F3DAB1","#FFF966","#DE620B","#230F11")
 hive_colors <- c(Brood = "#FF0000", Pollen = "#00FF00", Honey = "#0000FF", Empty = "#000000")
+heat_colors <- c(Hot = "#FFB000", Not = "#000000")
 
 hex_size <- 1
 
@@ -47,17 +48,20 @@ MAX_Y <- max(hex_center_ys)
 CENTER_X <- (hexdat_centers %>% filter(Yind == ceiling(MAX_ROWS/2) & Xind == ceiling(MAX_COLS/2)))$x
 CENTER_Y <- (hexdat_centers %>% filter(Yind == ceiling(MAX_ROWS/2) & Xind == ceiling(MAX_COLS/2)))$y
 
+HEAT_CENTER_X <- (hexdat_centers %>% filter(Yind == ceiling(MAX_ROWS/4) & Xind == ceiling(MAX_COLS/4)))$x
+HEAT_CENTER_Y <- (hexdat_centers %>% filter(Yind == ceiling(MAX_ROWS/4) & Xind == ceiling(MAX_COLS/4)))$y
+
 # Graphing Functions
 
 #This takes a given hive and turns it into a graph
 
 hive_matrix_to_graph <- function(hive_data,queen){
-  hive_tbl <- as.table(hive_data[,,1:2])
+  hive_tbl <- as.table(hive_data)
   colnames(hive_tbl) <- 1:MAX_COLS
   rownames(hive_tbl) <- 1:MAX_ROWS
   hive_df_pre <- as.data.frame(hive_tbl)
   hive_df <- as.data.frame(hive_tbl) %>% pivot_wider(names_from = Var3, values_from = Freq)
-  colnames(hive_df) <- c("y","x","contents","amount")
+  colnames(hive_df) <- c("y","x","contents","amount","age","heat")
   hive_df <- hive_df %>% arrange(y) %>%
     mutate(id = 1:(MAX_COLS*MAX_ROWS)) %>% 
     mutate(named_content = ifelse(contents == 0, "Empty",
@@ -65,16 +69,18 @@ hive_matrix_to_graph <- function(hive_data,queen){
                                          ifelse(contents == 2, "Pollen",
                                                 ifelse(contents == 3, "Honey","???")))))
   new_hexdat <- full_join(hexdat,
-                          hive_df %>% select(id,named_content,amount),
+                          hive_df %>% select(id,named_content,amount,heat),
                           by="id") %>% mutate(named_content = fct_relevel(as.factor(named_content),types))
   
   new_hexdat <- new_hexdat %>% mutate(amount = ifelse(named_content == "Honey",amount/MAX_HONEY,
                                                       ifelse(named_content == "Pollen",amount/MAX_POLLEN,
-                                                             ifelse(named_content == "Brood",amount/MAX_BROOD,1))))
+                                                             ifelse(named_content == "Brood",amount/MAX_BROOD,1)))) %>%
+                               mutate(heat = ifelse(heat == 1, "Hot", "Not"))
   
   g <- ggplot() + 
-    geom_polygon(new_hexdat, mapping = aes(x,y,group = id, fill = named_content, alpha = amount), colour = "black") +
-    scale_fill_manual(values=hive_colors) +
+    geom_polygon(new_hexdat, mapping = aes(x,y,group = id, color = heat, fill = named_content, alpha = amount)) +
+    scale_fill_manual(values = hive_colors) +
+    scale_color_manual(values = heat_colors) +
     coord_fixed() +
     theme_classic()
   
