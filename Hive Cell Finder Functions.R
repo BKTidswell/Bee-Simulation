@@ -89,7 +89,7 @@ calc_brood_dense_prob_heat <- function(hive_data){
         brood_dense_array[y,x] <- 1 + get_brood_density(x,y,hive_input)*(K-1)
       }
       else{
-        brood_dense_array[y,x] <- 1 + get_brood_density(x,y,hive_input)*(K-1)*WORKER_HEAT_AVOIDANCE
+        brood_dense_array[y,x] <- 1 + get_brood_density(x,y,hive_input)*(K-1)*(1-WORKER_HEAT_AVOIDANCE)
       }
       
     }
