@@ -11,11 +11,11 @@ library(readr)
 
 ```{r Read in Data}
 
-bee_param_df <- list.files(path="hive_data/heat_queen/", full.names = TRUE) %>% 
+bee_param_df <- list.files(path="hive_data/heat_none/", full.names = TRUE) %>% 
                 lapply(read_csv, show_col_types = FALSE) %>% 
                 bind_rows
 
-write.csv(bee_param_df,"bee_data_isaac_heat_queen.csv",row.names = FALSE)
+write.csv(bee_param_df,"bee_data_isaac_heat_none.csv",row.names = FALSE)
 
 ```
 
@@ -36,8 +36,9 @@ pollenRing = average min distance between honey and brood
 brood_bee_param <- read.csv("bee_data_isaac_heat_brood.csv") %>% mutate(type = "Brood")
 worker_bee_param <- read.csv("bee_data_isaac_heat_worker.csv") %>% mutate(type = "Worker")
 queen_bee_param <- read.csv("bee_data_isaac_heat_queen.csv") %>% mutate(type = "Queen")
+none_bee_param <- read.csv("bee_data_isaac_heat_none.csv") %>% mutate(type = "None")
 
-bee_heat_param_df <- rbind(brood_bee_param,worker_bee_param) %>% rbind(.,queen_bee_param)
+bee_heat_param_df <- rbind(brood_bee_param,worker_bee_param) %>% rbind(.,queen_bee_param) %>% rbind(.,none_bee_param)
 ```
 
 
