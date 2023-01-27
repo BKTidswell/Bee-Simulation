@@ -28,8 +28,8 @@ POLLEN <- 2
 HONEY <- 3 
 EMPTY <- 0
 
-MAX_ROWS <- 10
-MAX_COLS <- 10
+MAX_ROWS <- 75
+MAX_COLS <- 45
 
 print(trial_add)
 
@@ -125,9 +125,8 @@ parameter_df <- foreach(trial = 1:N_TRIALS, .combine='rbind') %dopar%{
           }
         } else if(o == 3){
           
-          #brood_density_prob_array <- calc_brood_dense_prob(hive)
-          brood_density_prob_array <- calc_brood_dense_prob_heat(hive)
-          
+          brood_density_prob_array <- calc_brood_dense_prob(hive)
+
           #Now we have bees eat
           honey_eaten <- 0
           honey_eat_attempts <- 0
@@ -135,7 +134,7 @@ parameter_df <- foreach(trial = 1:N_TRIALS, .combine='rbind') %dopar%{
           #We want to make sure that they don't eat more than they should
           # to keep it balanced
           while(honey_eaten < HONEY_EATEN_PER_HOUR && honey_eat_attempts < HONEY_BY_HOUR){
-            eating_output <- eat_products_m2(hive,brood_density_prob_array,HONEY)
+            eating_output <- eat_products_heat(hive,brood_density_prob_array,HONEY)
             hive <- eating_output[[1]]
             honey_eaten <- honey_eaten + eating_output[[2]]
             honey_eat_attempts <- honey_eat_attempts + 1
@@ -143,14 +142,13 @@ parameter_df <- foreach(trial = 1:N_TRIALS, .combine='rbind') %dopar%{
           
         } else if(o == 4){
           
-          #brood_density_prob_array <- calc_brood_dense_prob(hive)
-          brood_density_prob_array <- calc_brood_dense_prob_heat(hive)
-          
+          brood_density_prob_array <- calc_brood_dense_prob(hive)
+
           pollen_eaten <- 0
           pollen_eat_attempts <- 0
           
           while(pollen_eaten < POLLEN_EATEN_PER_HOUR && pollen_eat_attempts < POLLEN_BY_HOUR){
-            eating_output <- eat_products_m2(hive,brood_density_prob_array,POLLEN)
+            eating_output <- eat_products_heat(hive,brood_density_prob_array,POLLEN)
             hive <- eating_output[[1]]
             pollen_eaten <- pollen_eaten + eating_output[[2]]
             pollen_eat_attempts <- pollen_eat_attempts + 1

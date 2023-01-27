@@ -29,8 +29,8 @@ collect_products_heat <- function(hive_data,product,product_max){
     rand_x <- sample(1:MAX_COLS,1)
     rand_y <- sample(1:MAX_ROWS,1)
     
-    #If the place has heat adn you "roll" under work avoidence then try again
-    if((hive_data[rand_y,rand_x,1] == 1) && (runif(1) <= WORKER_HEAT_AVOIDANCE)){
+    #If the place has heat and you "roll" under work avoidence then try again
+    if((hive_data[rand_y,rand_x,4] == 1) && (runif(1) <= WORKER_HEAT_AVOIDANCE)){
       break
     } else{
       #Otherwise put things there as normal
@@ -59,16 +59,17 @@ eat_products <- function(hive_data,product){
     rand_x <- sample(1:MAX_COLS,1)
     rand_y <- sample(1:MAX_ROWS,1)
     
-    if(hive_data[rand_y,rand_x,1] == product){
-      amount_to_eat <- min(hive_data[rand_y,rand_x,2], 1 + get_brood_density(rand_x,rand_y,hive_data)*(K-1))
-      
-      hive_data[rand_y,rand_x,2] <- hive_data[rand_y,rand_x,2] - amount_to_eat
-      if(hive_data[rand_y,rand_x,2] == 0){
-        hive_data[rand_y,rand_x,1] <- EMPTY
+      if(hive_data[rand_y,rand_x,1] == product){
+        amount_to_eat <- min(hive_data[rand_y,rand_x,2], 1 + get_brood_density(rand_x,rand_y,hive_data)*(K-1))
+        
+        hive_data[rand_y,rand_x,2] <- hive_data[rand_y,rand_x,2] - amount_to_eat
+        if(hive_data[rand_y,rand_x,2] == 0){
+          hive_data[rand_y,rand_x,1] <- EMPTY
+        }
+        break
       }
-      break
-    }
   }
+  
   return(list(hive_data,amount_to_eat))
 }
 
@@ -92,6 +93,36 @@ eat_products_m2 <- function(hive_data,prob_array,product){
         hive_data[Yind,Xind,1] <- EMPTY
       }
       break
+    }
+  }
+  return(list(hive_data,amount_to_eat))
+}
+
+
+#For Eating Pollen and Honey with Head (Using Model 2)
+
+eat_products_heat <- function(hive_data,prob_array,product){
+  amount_to_eat <- 0
+  
+  for(i in 1:N_ATTEMPTS){
+    
+    id <- sample(array(1:(MAX_COLS*MAX_ROWS), dim = c(MAX_ROWS,MAX_COLS)),1,prob = prob_array)
+    Xind <- ceiling(id/MAX_ROWS)
+    Yind <- ((id-1)%%MAX_ROWS)+1
+    
+    #If the place has heat and you "roll" under work avoidence then try again
+    if((hive_data[Yind,Xind,4] == 1) && (runif(1) <= WORKER_HEAT_AVOIDANCE)){
+      break
+    } else{
+      if(hive_data[Yind,Xind,1] == product){
+        amount_to_eat <- 1
+        
+        hive_data[Yind,Xind,2] <- hive_data[Yind,Xind,2] - amount_to_eat
+        if(hive_data[Yind,Xind,2] == 0){
+          hive_data[Yind,Xind,1] <- EMPTY
+        }
+        break
+      }
     }
   }
   return(list(hive_data,amount_to_eat))
