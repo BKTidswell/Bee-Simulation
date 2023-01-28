@@ -49,9 +49,11 @@ Hive levels
 2. Amount (For Brood it's the age)
 3. Brood hourly hatching cohort
 
-```{r Run Simulation, warning = FALsSE}
+```{r Run Simulation, warning = FALSE}
+QUEENDF <- NULL
+
 N_TRIALS <- 1
-N_DAYS <- 1
+N_DAYS <- 60
 
 #To keep track of the data overall
 parameter_df <- tibble(days = 0,
@@ -131,7 +133,7 @@ for(trial in 1:N_TRIALS){
             #We want to make sure that they don't eat more than they should
             # to keep it balanced
             while(honey_eaten < HONEY_EATEN_PER_HOUR && honey_eat_attempts < HONEY_BY_HOUR){
-              eating_output <- eat_products_m2(hive,brood_density_prob_array,HONEY)
+              eating_output <- eat_products_heat(hive,brood_density_prob_array,HONEY)
               #eating_output <- eat_products(hive,HONEY)
               #eating_output <- eat_products_random(hive,HONEY)
               hive <- eating_output[[1]]
@@ -147,7 +149,7 @@ for(trial in 1:N_TRIALS){
             pollen_eat_attempts <- 0
             
             while(pollen_eaten < POLLEN_EATEN_PER_HOUR && pollen_eat_attempts < POLLEN_BY_HOUR){
-              eating_output <- eat_products_m2(hive,brood_density_prob_array,POLLEN)
+              eating_output <- eat_products_heat(hive,brood_density_prob_array,POLLEN)
               #eating_output <- eat_products(hive,POLLEN)
               #eating_output <- eat_products_random(hive,POLLEN)
               hive <- eating_output[[1]]
@@ -158,7 +160,8 @@ for(trial in 1:N_TRIALS){
         } else if(o == 5){
             #And then we have the queen lay brood
             for(i in 1:QUEEN_CELLS_PER_HOUR){
-              queen$move_to_center()
+              #queen$move_to_center()
+              queen$move_from_heat()
               #queen$move()
               hive <- queen$lay_brood(hive)
             }
@@ -229,6 +232,8 @@ for(trial in 1:N_TRIALS){
 }
 
 write.csv(parameter_df,paste0("Beehive Date Out ",Sys.time(),".csv"))
+
+write_csv(QUEENDF,"queen_pos_data.csv")
 
 ```
 

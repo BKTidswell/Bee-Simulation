@@ -13,13 +13,18 @@ library(parallel)
 args = commandArgs(trailingOnly=TRUE)
 print(args)
 
-args = "1000"
+#trial types are "worker", "queen", "brood"
 
-if (length(args)==0) {
-  stop("At least one argument must be supplied", call.=FALSE)
-} else if (length(args)==1) {
+if (length(args)<2) {
+  stop("At least two argument must be supplied", call.=FALSE)
+} else if (length(args)==2) {
   # default output file
   trial_add <- as.numeric(args[1])
+  trial_type <- args[2]
+  
+  if(!(trial_type %in% c("worker","queen","brood","none"))){
+    stop("Trial type must be worker, queen, brood, or none", call.=FALSE)
+  }
 }
 
 #Define stuff
@@ -47,11 +52,12 @@ source("Final Measures.R")
 # 2. Amount (For Brood it's the age)
 # 3. Brood hourly hatching cohort
 
-N_TRIALS <- 1
+N_TRIALS <- 40
 N_DAYS <- 30
 
 #To keep track of the data overall
 parameter_df <- tibble(trial_n = 0,
+                       type = trial_type,
                        days = 0,
                        n = 0,
                        rb = 0,
@@ -65,6 +71,10 @@ parameter_df <- tibble(trial_n = 0,
                        pHoney = 0,
                        pPollen = 0,
                        pEmpty = 0,
+                       pBroodHeat = 0,
+                       pHoneyHeat = 0,
+                       pPollenHeat = 0,
+                       pEmptyHeat = 0,
                        broodMetric = 0,
                        pollenRing = 0)
 
@@ -110,8 +120,13 @@ parameter_df <- foreach(trial = 1:N_TRIALS, .combine='rbind') %dopar%{
           if(h <= 12){
             #Now add the right amount of products
             for(i in 1:HONEY_BY_HOUR){
-              #hive <- collect_products(hive,HONEY,MAX_HONEY)
-              hive <- collect_products_heat(hive,HONEY,MAX_HONEY)
+              
+              if(trial_type == "worker"){
+                hive <- collect_products_heat(hive,POLLEN,MAX_POLLEN)  
+              }else{
+                hive <- collect_products(hive,HONEY,MAX_HONEY) 
+              }
+              
             }
           }
         } else if(o == 2){
@@ -119,14 +134,19 @@ parameter_df <- foreach(trial = 1:N_TRIALS, .combine='rbind') %dopar%{
           if(h <= 12){
             #Now add the right amount of products
             for(i in 1:POLLEN_BY_HOUR){
-              #hive <- collect_products(hive,HONEY,MAX_HONEY)
-              hive <- collect_products_heat(hive,POLLEN,MAX_POLLEN)
+              
+              if(trial_type == "worker"){
+                hive <- collect_products_heat(hive,POLLEN,MAX_POLLEN)  
+              }else{
+                hive <- collect_products(hive,HONEY,MAX_HONEY) 
+              }
+              
             }
           }
         } else if(o == 3){
           
           brood_density_prob_array <- calc_brood_dense_prob(hive)
-
+          
           #Now we have bees eat
           honey_eaten <- 0
           honey_eat_attempts <- 0
@@ -143,7 +163,7 @@ parameter_df <- foreach(trial = 1:N_TRIALS, .combine='rbind') %dopar%{
         } else if(o == 4){
           
           brood_density_prob_array <- calc_brood_dense_prob(hive)
-
+          
           pollen_eaten <- 0
           pollen_eat_attempts <- 0
           
@@ -157,8 +177,13 @@ parameter_df <- foreach(trial = 1:N_TRIALS, .combine='rbind') %dopar%{
         } else if(o == 5){
           #And then we have the queen lay brood
           for(i in 1:QUEEN_CELLS_PER_HOUR){
-            queen$move_to_center()
-            #queen$move()
+            
+            if(trial_type == "queen"){
+              queen$move_from_heat()
+            }else{
+              queen$move_to_center()
+            }
+            
             hive <- queen$lay_brood(hive)
           }
           
@@ -170,10 +195,16 @@ parameter_df <- foreach(trial = 1:N_TRIALS, .combine='rbind') %dopar%{
       }
     }
     
-    hive <- age_brood(hive)
+    if(trial_type == "brood"){
+      hive <- age_brood_heat(hive)         
+    }else{
+      hive <- age_brood(hive)       
+    }
+    
   }
   
   data_out <- tibble(trial_n = trial,
+                     type = trial_type,
                      days = N_DAYS,
                      n = QUEEN_CELLS_PER_HOUR,
                      rb = BROOD_RADIUS,
@@ -194,7 +225,7 @@ parameter_df <- foreach(trial = 1:N_TRIALS, .combine='rbind') %dopar%{
                      broodMetric = brood_metric(hive),
                      pollenRing = pollen_ring_metric(hive))
   
-  write.csv(data_out,paste0("hive_data/Beehive Data Out Trial ",str_pad(trial + trial_add, 5, pad = "0"),".csv"))
+  write.csv(data_out,paste0("hive_data/Beehive Data Out Trial ",str_pad(trial + trial_add, 5, pad = "0"),"_",trial_type,".csv"))
   
   ggsave(paste0("hive_plots/hiveplot_",str_pad((d-1)*24+h, 5, pad = "0"),
                 "_D",str_pad(d, 3, pad = "0"),

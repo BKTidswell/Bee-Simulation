@@ -7,6 +7,9 @@ output: html_notebook
 library(tidyverse)
 library(ggplot2)
 library(readr)
+
+round_any <- function(x, accuracy, f=round){f(x/ accuracy) * accuracy}
+
 ```
 
 ```{r Read in Data}
@@ -101,6 +104,63 @@ pollenRingGLM_m1 <- glm(pollenRing ~ n + rb + rn + w + pph + ph + pp + k, data =
 pollenRingGLM_step <- step(pollenRingGLM_m0, direction = "both", scope = formula(pollenRingGLM_m1), trace = 0)
 
 summary(pollenRingGLM_step)
+```
+
+```{r}
+library(viridis)
+queen_pos_df <- read.csv("queen_pos_data_0_5.csv")
+
+queen_pos_df_heatmap <- queen_pos_df %>% mutate(QueenXRound = round_any(QueenX,5),
+                                                QueenYRound = round_any(QueenY,5)) %>%
+                                        group_by(QueenXRound,QueenYRound) %>%
+                                        summarise(meanAngleMoved = mean(AngleMoved),
+                                                  count = n())
+
+```
+
+
+```{r}
+ggplot(queen_pos_df, aes(x = QueenX, y = QueenY))+
+  geom_path()+
+  geom_point(aes(x=11,y=48.5),colour="red") +
+  scale_color_viridis() +
+  theme_classic()
+
+ggplot(queen_pos_df, aes(x = QueenX, y = QueenY, color = Dist2Heat))+
+  geom_point()+
+  geom_point(aes(x=11,y=48.5),colour="red") +
+  scale_color_viridis() +
+  theme_classic()
+
+ggplot(queen_pos_df, aes(x = QueenX, y = QueenY, color = cos(AngleOppHeat)))+
+  geom_point()+
+  geom_point(aes(x=11,y=48.5),colour="red") +
+  scale_color_viridis() +
+  theme_classic()
+
+ggplot(queen_pos_df, aes(x = QueenX, y = QueenY, color = sin(AngleOppHeat)))+
+  geom_point()+
+  geom_point(aes(x=11,y=48.5),colour="red") +
+  scale_color_viridis() +
+  theme_classic()
+
+ggplot(queen_pos_df_heatmap, aes(x = QueenXRound, y = QueenYRound, color = cos(meanAngleMoved)))+
+  geom_point(size = 5)+
+  geom_point(aes(x=11,y=48.5),colour="red") +
+  scale_color_viridis() +
+  theme_classic()
+
+ggplot(queen_pos_df_heatmap, aes(x = QueenXRound, y = QueenYRound, color = sin(meanAngleMoved)))+
+  geom_point(size = 5)+
+  geom_point(aes(x=11,y=48.5),colour="red") +
+  scale_color_viridis() +
+  theme_classic()
+
+ggplot(queen_pos_df_heatmap, aes(x = QueenXRound, y = QueenYRound, color = count))+
+  geom_point(size = 5)+
+  geom_point(aes(x=11,y=48.5),colour="red") +
+  scale_color_viridis() +
+  theme_classic()
 ```
 
 
