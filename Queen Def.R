@@ -81,22 +81,8 @@ Queen <- R6Class("Queen",
                      #Trying to change it to see if changing these values helps
                      #Also changing the max distance to be right
                      angle_move <- atan2(self$cur_Y-HEAT_CENTER_Y,self$cur_X-HEAT_CENTER_X) + 
-                       rnorm(1,0, 2.828 - (2.828 - 5)*(dist_to_center/sqrt(34^2+48^2)))
-                     
-                     # print(paste(HEAT_CENTER_X,HEAT_CENTER_Y,
-                     #             self$cur_X,self$cur_Y,
-                     #             dist_to_center,
-                     #             atan2(self$cur_Y-HEAT_CENTER_Y,self$cur_X-HEAT_CENTER_X),
-                     #             angle_move,sep = ","))
-                     
-                     QUEENDF <<- rbind(QUEENDF,data.frame("HeatX"=HEAT_CENTER_X,
-                                                         "HeatY"=HEAT_CENTER_Y,
-                                                         "QueenX"=self$cur_X,
-                                                         "QueenY"=self$cur_Y,
-                                                         "Dist2Heat"=dist_to_center,
-                                                         "AngleOppHeat"=atan2(self$cur_Y-HEAT_CENTER_Y,self$cur_X-HEAT_CENTER_X),
-                                                         "AngleMoved"=angle_move))
-                     
+                       rnorm(1,0, QUEEN_HEAT_MOVEMENT_SD - (QUEEN_HEAT_MOVEMENT_SD - 5)*(dist_to_center/sqrt(34^2+48^2)))
+                    
                      #If on the edge restrict movement to the half facing the center
                      if(self$cur_X_ind == 1 || self$cur_X_ind == MAX_COLS ||
                         self$cur_Y_ind == 1 || self$cur_Y_ind == MAX_ROWS){

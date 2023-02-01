@@ -31,6 +31,10 @@ BROOD_HEAT_DEATH <- runif(1,0,1)
 #Worker Heat Avoidance
 WORKER_HEAT_AVOIDANCE <- runif(1,0,1)
 
+#Queen Heat Avoidance
+#The times 5 is to balance it to make it the same SD on the edges as in the heat 
+QUEEN_HEAT_MOVEMENT_SD <- runif(1,0,1)*5
+
 #Only collecting during the day
 HONEY_BY_HOUR <- ceiling(TOTAL_DAILY_HONEY/12)
 POLLEN_BY_HOUR <- ceiling((TOTAL_DAILY_HONEY*POLLEN_RATIO)/12)
