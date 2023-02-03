@@ -33,7 +33,10 @@ WORKER_HEAT_AVOIDANCE <- runif(1,0,1)
 
 #Queen Heat Avoidance
 #The times 5 is to balance it to make it the same SD on the edges as in the heat 
-QUEEN_HEAT_MOVEMENT_SD <- runif(1,0,1)*5
+QUEEN_HEAT_AVOIDANCE <- runif(1,0,1)
+
+#This is to make it from 0 to 5, and make higher heat avoidance be where the SD is smaller so heat is avoided more
+QUEEN_HEAT_MOVEMENT_SD <- (1 - QUEEN_HEAT_AVOIDANCE)*5
 
 #Only collecting during the day
 HONEY_BY_HOUR <- ceiling(TOTAL_DAILY_HONEY/12)

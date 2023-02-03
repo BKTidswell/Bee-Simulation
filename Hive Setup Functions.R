@@ -17,7 +17,7 @@
 
 make_set_hive <- function(){
   BROOD_RADIUS <- 18
-  POLLEN_WIDTH <- 4
+  POLLEN_WIDTH <- 5
   HEAT_RADIUS <- 10
   
   #Second two rows are for brood honey and pollen

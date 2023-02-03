@@ -157,7 +157,12 @@ parameter_df <- foreach(trial = 1:N_TRIALS, .combine='rbind') %dopar%{
           #We want to make sure that they don't eat more than they should
           # to keep it balanced
           while(honey_eaten < HONEY_EATEN_PER_HOUR && honey_eat_attempts < HONEY_BY_HOUR){
-            eating_output <- eat_products_heat(hive,brood_density_prob_array,HONEY)
+            if(trial_type == "worker"){
+              eating_output <- eat_products_heat(hive,brood_density_prob_array,HONEY)
+            }
+            else{
+              eating_output <- eat_products_m2(hive,brood_density_prob_array,HONEY)
+            }
             hive <- eating_output[[1]]
             honey_eaten <- honey_eaten + eating_output[[2]]
             honey_eat_attempts <- honey_eat_attempts + 1
@@ -171,7 +176,12 @@ parameter_df <- foreach(trial = 1:N_TRIALS, .combine='rbind') %dopar%{
           pollen_eat_attempts <- 0
           
           while(pollen_eaten < POLLEN_EATEN_PER_HOUR && pollen_eat_attempts < POLLEN_BY_HOUR){
-            eating_output <- eat_products_heat(hive,brood_density_prob_array,POLLEN)
+            if(trial_type == "worker"){
+              eating_output <- eat_products_heat(hive,brood_density_prob_array,POLLEN)
+            }
+            else{
+              eating_output <- eat_products_m2(hive,brood_density_prob_array,POLLEN)
+            }
             hive <- eating_output[[1]]
             pollen_eaten <- pollen_eaten + eating_output[[2]]
             pollen_eat_attempts <- pollen_eat_attempts + 1
@@ -219,7 +229,7 @@ parameter_df <- foreach(trial = 1:N_TRIALS, .combine='rbind') %dopar%{
                      k = round(K,4),
                      bhd = round(BROOD_HEAT_DEATH,4),
                      wha = round(WORKER_HEAT_AVOIDANCE,4),
-                     qha = round(QUEEN_HEAT_MOVEMENT_SD,4),
+                     qha = round(QUEEN_HEAT_AVOIDANCE,4),
                      pBrood = length(which(hive[,,1] == BROOD))/(MAX_ROWS*MAX_COLS),
                      pHoney = length(which(hive[,,1] == HONEY))/(MAX_ROWS*MAX_COLS),
                      pPollen = length(which(hive[,,1] == POLLEN))/(MAX_ROWS*MAX_COLS),
