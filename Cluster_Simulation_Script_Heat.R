@@ -1,3 +1,6 @@
+LIB='/cluster/tufts/hpc/tools/R/4.0.0'
+.libPaths(c(LIB,""))
+
 library(ggplot2)
 library(dplyr)
 library(tidyr)
@@ -13,7 +16,7 @@ library(parallel)
 args = commandArgs(trailingOnly=TRUE)
 print(args)
 
-#trial types are "worker", "queen", "brood"
+#trial types are "worker", "queen", "brood", "none", "all"
 
 if (length(args)<2) {
   stop("At least two argument must be supplied", call.=FALSE)
@@ -22,7 +25,7 @@ if (length(args)<2) {
   trial_add <- as.numeric(args[1])
   trial_type <- args[2]
   
-  if(!(trial_type %in% c("worker","queen","brood","none"))){
+  if(!(trial_type %in% c("worker","queen","brood","none","all"))){
     stop("Trial type must be worker, queen, brood, or none", call.=FALSE)
   }
 }
@@ -124,7 +127,7 @@ parameter_df <- foreach(trial = 1:N_TRIALS, .combine='rbind') %dopar%{
             #Now add the right amount of products
             for(i in 1:HONEY_BY_HOUR){
               
-              if(trial_type == "worker"){
+              if(trial_type == "worker" | trial_type == "all"){
                 hive <- collect_products_heat(hive,POLLEN,MAX_POLLEN)  
               }else{
                 hive <- collect_products(hive,HONEY,MAX_HONEY) 
@@ -138,7 +141,7 @@ parameter_df <- foreach(trial = 1:N_TRIALS, .combine='rbind') %dopar%{
             #Now add the right amount of products
             for(i in 1:POLLEN_BY_HOUR){
               
-              if(trial_type == "worker"){
+              if(trial_type == "worker" | trial_type == "all"){
                 hive <- collect_products_heat(hive,POLLEN,MAX_POLLEN)  
               }else{
                 hive <- collect_products(hive,HONEY,MAX_HONEY) 
@@ -157,7 +160,7 @@ parameter_df <- foreach(trial = 1:N_TRIALS, .combine='rbind') %dopar%{
           #We want to make sure that they don't eat more than they should
           # to keep it balanced
           while(honey_eaten < HONEY_EATEN_PER_HOUR && honey_eat_attempts < HONEY_BY_HOUR){
-            if(trial_type == "worker"){
+            if(trial_type == "worker" | trial_type == "all"){
               eating_output <- eat_products_heat(hive,brood_density_prob_array,HONEY)
             }
             else{
@@ -176,7 +179,7 @@ parameter_df <- foreach(trial = 1:N_TRIALS, .combine='rbind') %dopar%{
           pollen_eat_attempts <- 0
           
           while(pollen_eaten < POLLEN_EATEN_PER_HOUR && pollen_eat_attempts < POLLEN_BY_HOUR){
-            if(trial_type == "worker"){
+            if(trial_type == "worker" | trial_type == "all"){
               eating_output <- eat_products_heat(hive,brood_density_prob_array,POLLEN)
             }
             else{
@@ -191,7 +194,7 @@ parameter_df <- foreach(trial = 1:N_TRIALS, .combine='rbind') %dopar%{
           #And then we have the queen lay brood
           for(i in 1:QUEEN_CELLS_PER_HOUR){
             
-            if(trial_type == "queen"){
+            if(trial_type == "queen" | trial_type == "all"){
               queen$move_from_heat()
             }else{
               queen$move_to_center()
@@ -208,7 +211,7 @@ parameter_df <- foreach(trial = 1:N_TRIALS, .combine='rbind') %dopar%{
       }
     }
     
-    if(trial_type == "brood"){
+    if(trial_type == "brood" | trial_type == "all"){
       hive <- age_brood_heat(hive)         
     }else{
       hive <- age_brood(hive)       
