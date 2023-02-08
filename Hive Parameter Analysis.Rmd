@@ -9,19 +9,23 @@ library(ggplot2)
 library(readr)
 library(viridis)
 library(ggfortify)
-
+library(bbmle) #For ICtab
+library(car)
 
 round_any <- function(x, accuracy, f=round){f(x/ accuracy) * accuracy}
 
 ```
 
 ```{r Read in Data}
+trial_types <- c("none","brood","worker","queen","all")
 
-bee_param_df <- list.files(path="hive_data/heat_queen/", full.names = TRUE) %>% 
-                lapply(read_csv, show_col_types = FALSE) %>% 
+for (t in trial_types){
+  bee_param_df <- list.files(path=paste0("hive_data/heat_",t,"/"), full.names = TRUE) %>%
+                lapply(read_csv, show_col_types = FALSE) %>%
                 bind_rows
 
-write.csv(bee_param_df,"bee_data_isaac_heat_queen.csv",row.names = FALSE)
+  write.csv(bee_param_df,paste0("bee_data_isaac_heat_",t,".csv"),row.names = FALSE)
+}
 
 ```
 
@@ -39,12 +43,13 @@ broodMetric = average number of brood surrounding other brood
 pollenRing = average min distance between honey and brood
 
 ```{r}
-brood_bee_param <- read.csv("bee_data_isaac_heat_brood.csv") %>% mutate(type = "Brood") #%>% mutate(wha = 0, qha = 0)
-worker_bee_param <- read.csv("bee_data_isaac_heat_worker.csv") %>% mutate(type = "Worker") #%>% mutate(bhd = 0, qha = 0)
-queen_bee_param <- read.csv("bee_data_isaac_heat_queen.csv") %>% mutate(type = "Queen") #%>% mutate(bhd = 0, wha = 0)
-none_bee_param <- read.csv("bee_data_isaac_heat_none.csv") %>% mutate(type = "None") #%>% mutate(bhd = 0,wha = 0, qha = 0)
+brood_bee_param <- read.csv("bee_data_isaac_heat_brood.csv") %>% mutate(type = "Brood") %>% mutate(wha = 0, qha = 0)
+worker_bee_param <- read.csv("bee_data_isaac_heat_worker.csv") %>% mutate(type = "Worker") %>% mutate(bhd = 0, qha = 0)
+queen_bee_param <- read.csv("bee_data_isaac_heat_queen.csv") %>% mutate(type = "Queen") %>% mutate(bhd = 0, wha = 0)
+none_bee_param <- read.csv("bee_data_isaac_heat_none.csv") %>% mutate(type = "None") %>% mutate(bhd = 0,wha = 0, qha = 0)
+all_bee_param <- read.csv("bee_data_isaac_heat_all.csv") %>% mutate(type = "All")
 
-bee_heat_param_df <- rbind(brood_bee_param,worker_bee_param) %>% rbind(.,queen_bee_param) %>% rbind(.,none_bee_param)
+bee_heat_param_df <- rbind(brood_bee_param,worker_bee_param) %>% rbind(.,queen_bee_param) %>% rbind(.,none_bee_param) %>% rbind(.,all_bee_param)
 ```
 
 
@@ -204,17 +209,36 @@ hive_pca <- prcomp(bee_heat_param_df %>% select(-c(...1, trial_n, type, days, n,
 summary(hive_pca)
 
 
-autoplot(hive_pca, colour = "pHoney", loadings = TRUE, loadings.label = TRUE,
+autoplot(hive_pca, colour = "pPollen", loadings = TRUE, loadings.label = TRUE,
          data = bee_heat_param_df)+
   scale_color_viridis()+
   theme_classic()
 
-ggplot(bee_heat_param_df, aes(pPollenHeat, pBroodHeat))+
+ggplot(bee_heat_param_df, aes(pPollen, pBroodHeat))+
   geom_point()+
   theme_classic()
 
 ggplot(bee_heat_param_df, aes(wha, pPollen))+
   geom_point()+
   theme_classic()
+
+ggplot(bee_heat_param_df, aes(pph, pp, color = pPollen))+
+  geom_point()+
+  scale_color_viridis()+
+  theme_classic()
+```
+
+```{r}
+
+pollen_glm <- glm(pPollen ~ ., data = bee_heat_param_df %>% select(-c(...1, trial_n, type, days, n,
+                                                   pBrood, pHoney, pEmpty,
+                                                   pBroodHeat, pPollenHeat, pHoneyHeat, pEmptyHeat,
+                                                   broodMetric,pollenRing)))
+
+Anova(pollen_glm)
+
+#Pollen correlates with total daily honey, distance searched, brood heat death, worker heat avoidence, queen heat avoidence
+
+
 ```
 
