@@ -47,16 +47,30 @@ vect_hexes_dist_to_nearest_contents <- function(xHexs,yHexs,content,hive_data){
 
 #Gets the mean number of brood around other brood
 brood_metric <- function(hive_data){
-  brood_dense_df <- get_all_content(hive_data,BROOD) %>% mutate(n_brood = n_surrounding_brood(x,y,hive_data))
   
-  return(mean(brood_dense_df$n_brood))
+  if(length(get_all_content(hive_data,BROOD)$id) > 0){
+    brood_dense_df <- get_all_content(hive_data,BROOD) %>% mutate(n_brood = n_surrounding_brood(x,y,hive_data))
+    return(mean(brood_dense_df$n_brood))
+  }
+  else{
+    return(NA)
+  }
 }
 
 #Gets the mean smallest distance from honey to a brood
 pollen_ring_metric <- function(hive_data){
-  pollen_ring_df <- get_all_content(hive_data,HONEY) %>% mutate(dist_honey_brood = vect_hexes_dist_to_nearest_contents(Xind,Yind,BROOD,hive_data))
   
-  return(mean(pollen_ring_df$dist_honey_brood))
+  #Fixing issue when there is no honey
+  
+  if(length(get_all_content(hive_data,HONEY)$id) > 0){
+    pollen_ring_df <- get_all_content(hive_data,HONEY) %>% mutate(dist_honey_brood = vect_hexes_dist_to_nearest_contents(Xind,Yind,BROOD,hive_data))
+    
+    return(mean(pollen_ring_df$dist_honey_brood))
+  }
+  else{
+    return(NA)
+  }
+  
 }
 
 #Get the percent of contents in the heated area
@@ -64,7 +78,7 @@ get_percent_in_heat <- function(hive_data,contents){
   HEAT_RADIUS <- 10
   
   all_in_heat <- hexes_in_rad(HEAT_CENTER_X,HEAT_CENTER_Y,HEAT_RADIUS)
-  
+
   count <- 0
   
   for(i in 1:length(all_in_heat[[1]])){

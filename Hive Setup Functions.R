@@ -17,7 +17,7 @@
 
 make_set_hive <- function(){
   BROOD_RADIUS <- 18
-  POLLEN_WIDTH <- 5
+  POLLEN_WIDTH <- 6
   HEAT_RADIUS <- 10
   
   #Second two rows are for brood honey and pollen
@@ -107,3 +107,38 @@ make_empty_hive <- function(){
   
   return(set_hive)
 }
+
+#Makes a hive with only one content type
+make_monotype_hive <- function(CONTENT){
+  BROOD_RADIUS <- 1
+  HEAT_RADIUS <- 10
+  
+  #Second two rows are for brood honey and pollen
+  set_hive <- array(c(rep(CONTENT,MAX_ROWS*MAX_COLS),
+                      rep(0,MAX_ROWS*MAX_COLS*3)),
+                    dim = c(MAX_ROWS,MAX_COLS, 4))
+  
+  for(x in 1:MAX_COLS){
+    for(y in 1:MAX_ROWS){
+      layer2_val <- ifelse(set_hive[y,x,1] == BROOD, sample(1:MAX_BROOD, 1),
+                           ifelse(set_hive[y,x,1] == HONEY, sample(1:MAX_HONEY,1),
+                                  ifelse(set_hive[y,x,1] == POLLEN, sample(1:MAX_POLLEN,1),
+                                         0)))
+      layer3_val <- ifelse(set_hive[y,x,1] == BROOD, sample(1:24, 1), 0)
+      
+      set_hive[y,x,2] <- layer2_val
+      set_hive[y,x,3] <- layer3_val
+    }
+  }
+  
+  all_to_heat <- hexes_in_rad(HEAT_CENTER_X,HEAT_CENTER_Y,HEAT_RADIUS)
+  
+  for(i in 1:length(all_to_heat[[1]])){
+    x <- all_to_heat[[1]][i]
+    y <- all_to_heat[[2]][i]
+    set_hive[y,x,4] <- 1
+  }
+  
+  return(set_hive)
+}
+

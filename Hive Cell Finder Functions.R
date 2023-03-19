@@ -24,12 +24,19 @@ hexes_dist_to_nearest_contents <- function(xHex,yHex,content,hive_data){
   hive_df <- as.data.frame(as.table(hive_data[,,1:2])) %>% pivot_wider(names_from = Var3, values_from = Freq)
   colnames(hive_df) <- c("y","x","contents","amount")
   hive_df <- hive_df %>% arrange(y) %>% mutate(id = 1:(MAX_COLS*MAX_ROWS))
-  
+
   new_hex_dist <- full_join(hex_dist,
                             hive_df %>% select(id,contents),
                             by="id") %>% filter(contents == content) %>% arrange(dist)
   
-  return(new_hex_dist$dist[1])
+  #If there are no brood at all return 999 for the distance
+  if(length(new_hex_dist$dist) == 0){
+    return(999)
+  }
+  else{
+    return(new_hex_dist$dist[1])
+  }
+  
 }
 
 #Brood Density Calculation

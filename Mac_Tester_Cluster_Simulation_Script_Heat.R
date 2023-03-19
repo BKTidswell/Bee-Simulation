@@ -1,6 +1,9 @@
 LIB='/cluster/tufts/hpc/tools/R/4.0.0'
 .libPaths(c(LIB,""))
 
+seed_int <- 927526 #sample(1:1000000, 1)
+set.seed(seed_int)
+
 library(ggplot2)
 library(dplyr)
 library(tidyr)
@@ -15,6 +18,8 @@ library(parallel)
 # test if there is at least one argument: if not, return an error
 args = commandArgs(trailingOnly=TRUE)
 print(args)
+
+args = c("0","all")
 
 #trial types are "worker", "queen", "brood", "none", "all"
 
@@ -55,8 +60,8 @@ source("Final Measures.R")
 # 2. Amount (For Brood it's the age)
 # 3. Brood hourly hatching cohort
 
-N_TRIALS <- 40
-N_DAYS <- 30
+N_TRIALS <- 1
+N_DAYS <- 3
 
 #To keep track of the data overall
 parameter_df <- tibble(trial_n = 0,
@@ -93,8 +98,13 @@ print(numCores)
 parameter_df <- foreach(trial = 1:N_TRIALS, .combine='rbind') %dopar%{
   source("Random Bee Parameters.R")
   
+  print(seed_int)
+  
+  
   #hive <- make_empty_hive()
-  hive <- make_set_hive()
+  #hive <- make_set_hive()
+  
+  hive <- make_monotype_hive(HONEY)
   
   queen <- Queen$new(median(hexdat_centers$x),median(hexdat_centers$y))
   
@@ -103,12 +113,39 @@ parameter_df <- foreach(trial = 1:N_TRIALS, .combine='rbind') %dopar%{
                            Honey = length(which(hive[,,1] == HONEY)),
                            Pollen = length(which(hive[,,1] == POLLEN)),
                            Empty = length(which(hive[,,1] == EMPTY)))
+  
+  data_out <- tibble(trial_n = trial,
+                     type = trial_type,
+                     days = N_DAYS,
+                     n = QUEEN_CELLS_PER_HOUR,
+                     rb = BROOD_RADIUS,
+                     rn = NECTER_CONSUMP_RAD,
+                     w = TOTAL_DAILY_HONEY,
+                     pph = round(POLLEN_RATIO,4),
+                     ph = round(HONEY_CONSUMPTION_RATIO,4),
+                     pp = round(POLLEN_CONSUMPTION_RATIO,4),
+                     k = round(K,4),
+                     bhd = round(BROOD_HEAT_DEATH,4),
+                     wha = round(WORKER_HEAT_AVOIDANCE,4),
+                     qha = round(QUEEN_HEAT_AVOIDANCE,4),
+                     pBrood = length(which(hive[,,1] == BROOD))/(MAX_ROWS*MAX_COLS),
+                     pHoney = length(which(hive[,,1] == HONEY))/(MAX_ROWS*MAX_COLS),
+                     pPollen = length(which(hive[,,1] == POLLEN))/(MAX_ROWS*MAX_COLS),
+                     pEmpty = length(which(hive[,,1] == EMPTY))/(MAX_ROWS*MAX_COLS),
+                     pBroodHeat = get_percent_in_heat(hive,BROOD),
+                     pHoneyHeat = get_percent_in_heat(hive,HONEY),
+                     pPollenHeat = get_percent_in_heat(hive,POLLEN),
+                     pEmptyHeat = get_percent_in_heat(hive,EMPTY),
+                     broodMetric = brood_metric(hive),
+                     pollenRing = pollen_ring_metric(hive))
 
   for(d in 1:N_DAYS){
     print(paste0("Day ",d))
     
     #24 hours in a day
-    for(h in 1:24){
+    for(h in c(1,13)){
+      
+      print(h)
       
       #This is to give the actions a random order
       # 1: Collecting Honey
@@ -117,9 +154,11 @@ parameter_df <- foreach(trial = 1:N_TRIALS, .combine='rbind') %dopar%{
       # 4: Eating Pollen
       # 5: Lay eggs
       # 6: Brood Hatch
-      order <- sample(1:6,6)
+      order <- c(6,5,1,2,3,4) #sample(1:6,6)
       
       for(o in order){
+        
+        print(o)
         
         if(o == 1){
           #only collect during the day
@@ -185,11 +224,12 @@ parameter_df <- foreach(trial = 1:N_TRIALS, .combine='rbind') %dopar%{
             else{
               eating_output <- eat_products_m2(hive,brood_density_prob_array,POLLEN)
             }
+            
             hive <- eating_output[[1]]
             pollen_eaten <- pollen_eaten + eating_output[[2]]
             pollen_eat_attempts <- pollen_eat_attempts + 1
           }
-          
+        
         } else if(o == 5){
           #And then we have the queen lay brood
           for(i in 1:QUEEN_CELLS_PER_HOUR){
@@ -199,8 +239,9 @@ parameter_df <- foreach(trial = 1:N_TRIALS, .combine='rbind') %dopar%{
             }else{
               queen$move_to_center()
             }
-            
+          
             hive <- queen$lay_brood(hive)
+            
           }
           
         } else if(o == 6){

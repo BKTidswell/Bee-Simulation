@@ -116,7 +116,6 @@ eat_products_heat <- function(hive_data,prob_array,product){
     } else{
       if(hive_data[Yind,Xind,1] == product){
         amount_to_eat <- 1
-        
         hive_data[Yind,Xind,2] <- hive_data[Yind,Xind,2] - amount_to_eat
         if(hive_data[Yind,Xind,2] == 0){
           hive_data[Yind,Xind,1] <- EMPTY
@@ -125,6 +124,7 @@ eat_products_heat <- function(hive_data,prob_array,product){
       }
     }
   }
+  
   return(list(hive_data,amount_to_eat))
 }
 
@@ -159,9 +159,15 @@ age_brood <- function(hive_data){
   brood_xs <- data.frame(which(hive_data[,,1] == BROOD,arr.ind = TRUE))$col
   brood_ys <- data.frame(which(hive_data[,,1] == BROOD,arr.ind = TRUE))$row
   
-  for(i in 1:length(brood_xs)){
-    hive_data[brood_ys[i],brood_xs[i],2] <- hive_data[brood_ys[i],brood_xs[i],2] + 1
+  #Okay if there aren't any brood don't try to age them
+  if(length(brood_xs) > 0){
+    
+    for(i in 1:length(brood_xs)){
+      hive_data[brood_ys[i],brood_xs[i],2] <- hive_data[brood_ys[i],brood_xs[i],2] + 1
+    }
+    
   }
+  
   return(hive_data)
 }
 
@@ -171,16 +177,22 @@ age_brood_heat <- function(hive_data){
   brood_xs <- data.frame(which(hive_data[,,1] == BROOD,arr.ind = TRUE))$col
   brood_ys <- data.frame(which(hive_data[,,1] == BROOD,arr.ind = TRUE))$row
   
-  for(i in 1:length(brood_xs)){
-    hive_data[brood_ys[i],brood_xs[i],2] <- hive_data[brood_ys[i],brood_xs[i],2] + 1
-    
-    #Here we remove them from heat if they "roll" under the heat death chance
-    if((hive_data[brood_ys[i],brood_xs[i],1] == 1) && (runif(1) <= BROOD_HEAT_DEATH)){
-      hive_data[brood_ys[i],brood_xs[i],1] <- EMPTY
-      hive_data[brood_ys[i],brood_xs[i],2] <- 0
-      hive_data[brood_ys[i],brood_xs[i],3] <- 0
+  #Okay if there aren't any brood don't try to age them
+  if(length(brood_xs) > 0){
+  
+    for(i in 1:length(brood_xs)){
+      hive_data[brood_ys[i],brood_xs[i],2] <- hive_data[brood_ys[i],brood_xs[i],2] + 1
+      
+      #Here we remove them from heat if they "roll" under the heat death chance
+      if((hive_data[brood_ys[i],brood_xs[i],1] == 1) && (runif(1) <= BROOD_HEAT_DEATH)){
+        hive_data[brood_ys[i],brood_xs[i],1] <- EMPTY
+        hive_data[brood_ys[i],brood_xs[i],2] <- 0
+        hive_data[brood_ys[i],brood_xs[i],3] <- 0
+      }
     }
+    
   }
+  
   return(hive_data)
 }
 

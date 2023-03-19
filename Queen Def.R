@@ -111,7 +111,7 @@ Queen <- R6Class("Queen",
                      
                      #If you end up on an empty hive
                      if(curr_fill == EMPTY && 
-                        hexes_dist_to_nearest_contents(self$cur_X_ind,self$cur_Y_ind,BROOD,current_hive) <= BROOD_RADIUS){
+                       hexes_dist_to_nearest_contents(self$cur_X_ind,self$cur_Y_ind,BROOD,current_hive) <= BROOD_RADIUS){
                        current_hive[self$cur_Y_ind,self$cur_X_ind,1] <- BROOD
                        current_hive[self$cur_Y_ind,self$cur_X_ind,2] <- 0
                        current_hive[self$cur_Y_ind,self$cur_X_ind,3] <- sample(1:24, 1)
