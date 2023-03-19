@@ -167,7 +167,7 @@ parameter_df <- foreach(trial = 1:N_TRIALS, .combine='rbind') %dopar%{
             for(i in 1:HONEY_BY_HOUR){
               
               if(trial_type == "worker" | trial_type == "all"){
-                hive <- collect_products_heat(hive,POLLEN,MAX_POLLEN)  
+                hive <- collect_products_heat(hive,HONEY,MAX_HONEY)  
               }else{
                 hive <- collect_products(hive,HONEY,MAX_HONEY) 
               }
@@ -183,7 +183,7 @@ parameter_df <- foreach(trial = 1:N_TRIALS, .combine='rbind') %dopar%{
               if(trial_type == "worker" | trial_type == "all"){
                 hive <- collect_products_heat(hive,POLLEN,MAX_POLLEN)  
               }else{
-                hive <- collect_products(hive,HONEY,MAX_HONEY) 
+                hive <- collect_products(hive,POLLEN,MAX_POLLEN) 
               }
               
             }
