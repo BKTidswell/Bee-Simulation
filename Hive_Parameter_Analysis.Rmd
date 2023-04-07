@@ -1,0 +1,331 @@
+---
+title: "Hive Parameter Analysis"
+output: html_notebook
+---
+
+```{r Load Packages}
+library(MASS)
+library(tidyverse)
+library(ggplot2)
+library(readr)
+library(viridis)
+library(ggfortify)
+library(bbmle) #For ICtab
+library(car)
+library(emmeans)
+
+ 
+round_any <- function(x, accuracy, f=round){f(x/ accuracy) * accuracy}
+
+```
+
+```{r}
+round_any <- function(x, accuracy, f=round){f(x/ accuracy) * accuracy}
+```
+
+
+```{r Read in Data}
+# trial_types <- c("none","brood","worker","queen","all")
+
+# for (t in trial_types){
+#   bee_param_df <- list.files(path=paste0("hive_data/heat_",t,"/"), full.names = TRUE) %>%
+#                 lapply(read_csv, show_col_types = FALSE) %>%
+#                 bind_rows %>%
+#                 mutate(filenames = list.files(path=paste0("hive_data/heat_",t,"/"), full.names = TRUE))
+# 
+#   write.csv(bee_param_df,paste0("bee_data_isaac_heat_",t,".csv"),row.names = FALSE)
+# }
+
+```
+
+What these all mean:
+n = queen cells per hour
+rb = brood radius
+rn = necter radius
+w = total daily honey
+pph = pollen ratio
+ph = honey consumption ratio
+pp = pollen consumption ratio
+k = consumption probability value
+
+broodMetric = average number of brood surrounding other brood
+pollenRing = average min distance between honey and brood
+
+```{r}
+brood_bee_param <- read.csv("bee_data_isaac_heat_brood.csv") %>% mutate(type = "Brood") %>% mutate(wha = 0, qha = 0)
+worker_bee_param <- read.csv("bee_data_isaac_heat_worker.csv") %>% mutate(type = "Worker") %>% mutate(bhd = 0, qha = 0)
+queen_bee_param <- read.csv("bee_data_isaac_heat_queen.csv") %>% mutate(type = "Queen") %>% mutate(bhd = 0, wha = 0)
+none_bee_param <- read.csv("bee_data_isaac_heat_none.csv") %>% mutate(type = "None") %>% mutate(bhd = 0,wha = 0, qha = 0)
+all_bee_param <- read.csv("bee_data_isaac_heat_all.csv") %>% mutate(type = "All")
+
+bee_heat_param_df <- rbind(brood_bee_param,worker_bee_param) %>% rbind(.,queen_bee_param) %>% rbind(.,all_bee_param) %>% rbind(.,none_bee_param)
+```
+
+
+```{r}
+ggplot(bee_heat_param_df, aes(x = type, y = pBroodHeat))+
+  geom_boxplot()+
+  theme_classic()
+
+heat_glm <- glm(pBroodHeat ~ 0 + type, data = bee_heat_param_df)
+
+contrast(emmeans(heat_glm, "type"), "pairwise", adjust = "Tukey")
+
+```
+
+
+```{r}
+
+ggplot(all_bee_param %>% na.omit(), aes(x = qha, y = bhd, color = pBroodHeat))+
+  geom_point()+
+  scale_color_viridis()+
+  theme_classic()
+
+rounded_all_bee_param <- all_bee_param %>% mutate(rounded_qha = round_any(qha, 0.25),
+                                                 rounded_bhd = round_any(bhd, 0.25))
+
+ggplot(rounded_all_bee_param %>% na.omit(), aes(x = rounded_qha, y = rounded_bhd, z = pBroodHeat))+
+  geom_contour_filled()+
+  theme_classic()
+
+
+```
+
+
+
+
+```{r}
+
+ggplot(bee_heat_param_df %>% na.omit(), aes(x = broodMetric, y = pollenRing, color = pHoney))+
+  geom_point(alpha = 0.1)+
+  scale_color_viridis()+
+  theme_classic()
+
+max(pollenRing)
+
+```
+
+
+
+Looking at correlation between heat parameter and brood in the place
+
+```{r}
+ggplot(bee_heat_param_df %>% filter(wha > 0), aes(x = wha, y = pBroodHeat))+
+  geom_point()+
+  geom_smooth(method = 'glm', formula = 'y ~ x')+
+  theme_classic()
+
+cor.test(worker_bee_param$wha,worker_bee_param$pBroodHeat)
+
+ggplot(bee_heat_param_df %>% filter(qha > 0), aes(x = qha, y = pBroodHeat))+
+  geom_point()+
+  geom_smooth(method = 'glm', formula = 'y ~ x')+
+  theme_classic()
+
+cor.test(queen_bee_param$qha,queen_bee_param$pBroodHeat)
+
+```
+
+Let's make some stepwise models! Just with the all data for now so there aren't so many zeroes
+
+```{r}
+
+hive_pca <- prcomp(bee_heat_param_df %>% select(-c(...1, trial_n, type, days, n,
+                                                   pBrood, pPollen, pHoney, pEmpty,
+                                                   pBroodHeat, pPollenHeat, pHoneyHeat, pEmptyHeat,
+                                                   broodMetric,pollenRing)),
+                   center = TRUE,scale. = TRUE)
+summary(hive_pca)
+hive_pca$rotation[,1:2]
+
+autoplot(hive_pca, colour = "pBroodHeat", loadings = TRUE, loadings.label = TRUE,
+         data = bee_heat_param_df)+
+  scale_color_viridis()+
+  theme_classic()
+
+ggplot(bee_heat_param_df, aes(pPollen, pBroodHeat))+
+  geom_point()+
+  theme_classic()
+
+ggplot(bee_heat_param_df, aes(wha, pPollen))+
+  geom_point()+
+  theme_classic()
+
+ggplot(bee_heat_param_df, aes(pph, pp, color = pPollen))+
+  geom_point()+
+  scale_color_viridis()+
+  theme_classic()
+```
+
+```{r}
+heat_brood_glm <- glm(pBroodHeat ~ ., data = all_bee_param %>% dplyr::select(-c(...1, trial_n, type, days, n,
+                                                   pBrood, pPollen, pHoney, pEmpty,
+                                                   pPollenHeat, pHoneyHeat, pEmptyHeat,
+                                                   broodMetric,pollenRing)))
+
+stepped_model <- stepAIC(heat_brood_glm, direction = "both")
+
+
+Anova(stepped_model)
+
+ggplot(all_bee_param, aes(bhd, pBroodHeat, color = pBroodHeat))+
+  geom_point()+
+  scale_color_viridis()+
+  theme_classic()
+
+ggplot(all_bee_param, aes(qha, pBroodHeat, color = pBroodHeat))+
+  geom_point()+
+  scale_color_viridis()+
+  theme_classic()
+```
+
+now let's see about the order of those models
+
+```{r}
+
+bhd_m <- glm(pBroodHeat ~ bhd, data = all_bee_param)
+bhd_2_m <- glm(pBroodHeat ~ poly(bhd,2), data = all_bee_param)
+bhd_3_m <- glm(pBroodHeat ~ poly(bhd,3), data = all_bee_param)
+bhd_ln_m <- glm(pBroodHeat ~ log(bhd), data = all_bee_param)
+
+ICtab(bhd_m,bhd_2_m,bhd_3_m,bhd_ln_m)
+
+ggplot(all_bee_param, aes(bhd, pBroodHeat, color = pBroodHeat))+
+  geom_point()+
+  geom_smooth(method = "glm", formula = "y ~ poly(x,2)", se = FALSE) +
+  scale_color_viridis()+
+  theme_classic()
+
+
+qha_m <- glm(pBroodHeat ~ qha, data = all_bee_param)
+qha_2_m <- glm(pBroodHeat ~ poly(qha,2), data = all_bee_param)
+qha_3_m <- glm(pBroodHeat ~ poly(qha,3), data = all_bee_param)
+qha_ln_m <- glm(pBroodHeat ~ log(qha), data = all_bee_param)
+
+ICtab(qha_m,qha_2_m,qha_3_m,qha_ln_m)
+
+ggplot(all_bee_param, aes(qha, pBroodHeat, color = pBroodHeat))+
+  geom_point()+
+  geom_smooth(method = "glm", formula = "y ~ x", se = FALSE) +
+  scale_color_viridis()+
+  theme_classic()
+
+```
+
+
+
+####
+OLDER CODE, looking at model type, we decided on M2
+####
+
+
+```{r}
+rand_bee_param <- read.csv("bee_data_isaac_rand.csv") %>% mutate(type = "Rand")
+m1_bee_param <- read.csv("bee_data_isaac_m1.csv") %>% mutate(type = "M1") %>% select(-trial_n)
+m2_bee_param <- read.csv("bee_data_isaac_m2.csv") %>% mutate(type = "M2") %>% select(-trial_n)
+m2E_bee_param <- read.csv("bee_data_isaac_m2_empty.csv") %>% mutate(type = "M2E") %>% select(-trial_n)
+m2K_bee_param <- read.csv("bee_data_isaac_m2_katie.csv") %>% mutate(type = "M2K") %>% select(-trial_n)
+
+bee_param_df <- rbind(m1_bee_param,m2_bee_param) %>% rbind(.,rand_bee_param) %>% rbind(.,m2E_bee_param) %>% rbind(.,m2K_bee_param)
+```
+
+
+```{r}
+bee_param_df_perc <- bee_param_df %>% select(c(type,pBrood,pHoney,pPollen,pEmpty)) %>%
+                                      pivot_longer(c(pBrood,pHoney,pPollen,pEmpty))
+```
+
+
+```{r Overall Brood and Pollen}
+
+ggplot(bee_param_df, aes(x = broodMetric, y = pollenRing, color = type))+
+  geom_point(alpha = 0.25)+
+  ylim(0,16)+
+  xlim(0,6)+
+  theme_classic()
+
+ggplot(bee_param_df_perc, aes(x = type, y = value, fill = name))+
+  geom_boxplot()+
+  theme_classic()
+
+ggplot(m1_bee_param, aes(x = pPollen, y = pph))+
+  geom_point()+
+  theme_classic()
+
+```
+
+```{r Brood Metric GLMs}
+broodMetricGLM_m0 <- glm(broodMetric ~ 1, data = m2_bee_param)
+broodMetricGLM_m1 <- glm(broodMetric ~ n + rb + rn + w + pph + ph + pp + k, data = m2_bee_param)
+broodMetricGLM_step <- step(broodMetricGLM_m0, direction = "both", scope = formula(broodMetricGLM_m1), trace = 0)
+
+summary(broodMetricGLM_step)
+```
+
+```{r Pollen Ring GLMs}
+pollenRingGLM_m0 <- glm(pollenRing ~ 1, data = m2_bee_param)
+pollenRingGLM_m1 <- glm(pollenRing ~ n + rb + rn + w + pph + ph + pp + k, data = m2_bee_param)
+pollenRingGLM_step <- step(pollenRingGLM_m0, direction = "both", scope = formula(pollenRingGLM_m1), trace = 0)
+
+summary(pollenRingGLM_step)
+```
+
+```{r}
+queen_pos_df <- read.csv("queen_pos_data_0_5.csv")
+
+queen_pos_df_heatmap <- queen_pos_df %>% mutate(QueenXRound = round_any(QueenX,5),
+                                                QueenYRound = round_any(QueenY,5)) %>%
+                                        group_by(QueenXRound,QueenYRound) %>%
+                                        summarise(meanAngleMoved = mean(AngleMoved),
+                                                  count = n())
+
+```
+
+
+```{r}
+ggplot(queen_pos_df, aes(x = QueenX, y = QueenY))+
+  geom_path()+
+  geom_point(aes(x=11,y=48.5),colour="red") +
+  scale_color_viridis() +
+  theme_classic()
+
+ggplot(queen_pos_df, aes(x = QueenX, y = QueenY, color = Dist2Heat))+
+  geom_point()+
+  geom_point(aes(x=11,y=48.5),colour="red") +
+  scale_color_viridis() +
+  theme_classic()
+
+ggplot(queen_pos_df, aes(x = QueenX, y = QueenY, color = cos(AngleOppHeat)))+
+  geom_point()+
+  geom_point(aes(x=11,y=48.5),colour="red") +
+  scale_color_viridis() +
+  theme_classic()
+
+ggplot(queen_pos_df, aes(x = QueenX, y = QueenY, color = sin(AngleOppHeat)))+
+  geom_point()+
+  geom_point(aes(x=11,y=48.5),colour="red") +
+  scale_color_viridis() +
+  theme_classic()
+
+ggplot(queen_pos_df_heatmap, aes(x = QueenXRound, y = QueenYRound, color = cos(meanAngleMoved)))+
+  geom_point(size = 5)+
+  geom_point(aes(x=11,y=48.5),colour="red") +
+  scale_color_viridis() +
+  theme_classic()
+
+ggplot(queen_pos_df_heatmap, aes(x = QueenXRound, y = QueenYRound, color = sin(meanAngleMoved)))+
+  geom_point(size = 5)+
+  geom_point(aes(x=11,y=48.5),colour="red") +
+  scale_color_viridis() +
+  theme_classic()
+
+ggplot(queen_pos_df_heatmap, aes(x = QueenXRound, y = QueenYRound, color = count))+
+  geom_point(size = 5)+
+  geom_point(aes(x=11,y=48.5),colour="red") +
+  scale_color_viridis() +
+  theme_classic()
+```
+
+
+
+
