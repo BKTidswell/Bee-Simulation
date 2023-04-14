@@ -102,9 +102,9 @@ parameter_df <- foreach(trial = 1:N_TRIALS, .combine='rbind') %dopar%{
   
   
   #hive <- make_empty_hive()
-  #hive <- make_set_hive()
+  hive <- make_set_hive()
   
-  hive <- make_monotype_hive(HONEY)
+  #hive <- make_monotype_hive(HONEY)
   
   queen <- Queen$new(median(hexdat_centers$x),median(hexdat_centers$y))
   

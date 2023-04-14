@@ -20,13 +20,15 @@ round_any <- function(x, accuracy, f=round){f(x/ accuracy) * accuracy}
 ```
 
 ```{r}
+
 round_any <- function(x, accuracy, f=round){f(x/ accuracy) * accuracy}
+
 ```
 
 
 ```{r Read in Data}
 # trial_types <- c("none","brood","worker","queen","all")
-
+# 
 # for (t in trial_types){
 #   bee_param_df <- list.files(path=paste0("hive_data/heat_",t,"/"), full.names = TRUE) %>%
 #                 lapply(read_csv, show_col_types = FALSE) %>%
@@ -98,11 +100,13 @@ ggplot(rounded_all_bee_param %>% na.omit(), aes(x = rounded_qha, y = rounded_bhd
 
 ggplot(bee_heat_param_df %>% na.omit(), aes(x = broodMetric, y = pollenRing, color = pHoney))+
   geom_point(alpha = 0.1)+
+  geom_rect(aes(xmin = 5, xmax = 6, ymin = 12, ymax = 30), fill = NA)+
   scale_color_viridis()+
   theme_classic()
 
-max(pollenRing)
+max(bee_heat_param_df$pollenRing)
 
+bee_heat_param_df %>% filter(broodMetric >= 5 & pollenRing >= 10)
 ```
 
 
@@ -110,20 +114,26 @@ max(pollenRing)
 Looking at correlation between heat parameter and brood in the place
 
 ```{r}
-ggplot(bee_heat_param_df %>% filter(wha > 0), aes(x = wha, y = pBroodHeat))+
+ggplot(bee_heat_param_df %>% filter(bhd > 0), aes(x = bhd, y = pBroodHeat))+
   geom_point()+
   geom_smooth(method = 'glm', formula = 'y ~ x')+
   theme_classic()
 
-cor.test(worker_bee_param$wha,worker_bee_param$pBroodHeat)
+cor.test((bee_heat_param_df %>% filter(bhd > 0))$bhd,(bee_heat_param_df %>% filter(bhd > 0))$pBroodHeat)
 
 ggplot(bee_heat_param_df %>% filter(qha > 0), aes(x = qha, y = pBroodHeat))+
   geom_point()+
   geom_smooth(method = 'glm', formula = 'y ~ x')+
   theme_classic()
 
-cor.test(queen_bee_param$qha,queen_bee_param$pBroodHeat)
+cor.test((bee_heat_param_df %>% filter(qha > 0))$qha,(bee_heat_param_df %>% filter(qha > 0))$pBroodHeat)
 
+ggplot(bee_heat_param_df %>% filter(wha > 0), aes(x = wha, y = pBroodHeat))+
+  geom_point()+
+  geom_smooth(method = 'glm', formula = 'y ~ x')+
+  theme_classic()
+
+cor.test((bee_heat_param_df %>% filter(wha > 0))$wha,(bee_heat_param_df %>% filter(wha > 0))$pBroodHeat)
 ```
 
 Let's make some stepwise models! Just with the all data for now so there aren't so many zeroes
@@ -212,7 +222,99 @@ ggplot(all_bee_param, aes(qha, pBroodHeat, color = pBroodHeat))+
 
 ```
 
+From the none data, looking at the good ones. The pollen ring metric seems a bit off
+```{r}
 
+good_hives <- c("hiveplot_00720_D030_T00111_none.pdf","hiveplot_00720_D030_T00125_none.pdf","hiveplot_00720_D030_T00211_none.pdf",
+                "hiveplot_00720_D030_T00219_none.pdf","hiveplot_00720_D030_T00333_none.pdf","hiveplot_00720_D030_T00530_none.pdf",
+                "hiveplot_00720_D030_T00619_none.pdf","hiveplot_00720_D030_T00706_none.pdf","hiveplot_00720_D030_T00923_none.pdf",
+                "hiveplot_00720_D030_T00928_none.pdf","hiveplot_00720_D030_T01430_none.pdf","hiveplot_00720_D030_T01430_none.pdf",
+                "hiveplot_00720_D030_T01720_none.pdf","hiveplot_00720_D030_T01914_none.pdf","hiveplot_00720_D030_T01915_none.pdf",
+                "hiveplot_00720_D030_T01938_none.pdf","hiveplot_00720_D030_T02001_none.pdf","hiveplot_00720_D030_T02028_none.pdf")
+
+good_csvs <- c()
+
+for(hive in good_hives){
+  number <- substring(hive,22,26)
+  
+  file <- paste0("hive_data/heat_none//Beehive Data Out Trial ",number,"_none.csv")
+  
+  good_csvs <- c(file,good_csvs)
+}
+
+bad_hives <- c("hiveplot_00720_D030_T00108_none.pdf","hiveplot_00720_D030_T00122_none.pdf","hiveplot_00720_D030_T00209_none.pdf",
+               "hiveplot_00720_D030_T00218_none.pdf","hiveplot_00720_D030_T00236_none.pdf","hiveplot_00720_D030_T00328_none.pdf",
+               "hiveplot_00720_D030_T00335_none.pdf","hiveplot_00720_D030_T00421_none.pdf","hiveplot_00720_D030_T00614_none.pdf",
+               "hiveplot_00720_D030_T00635_none.pdf","hiveplot_00720_D030_T00711_none.pdf","hiveplot_00720_D030_T00935_none.pdf",
+               "hiveplot_00720_D030_T01137_none.pdf","hiveplot_00720_D030_T01313_none.pdf","hiveplot_00720_D030_T01525_none.pdf",
+               "hiveplot_00720_D030_T01623_none.pdf","hiveplot_00720_D030_T01725_none.pdf","hiveplot_00720_D030_T01928_none.pdf")
+
+bad_csvs <- c()
+
+for(hive in bad_hives){
+  number <- substring(hive,22,26)
+  
+  file <- paste0("hive_data/heat_none//Beehive Data Out Trial ",number,"_none.csv")
+  
+  bad_csvs <- c(file,bad_csvs)
+}
+                                                                  
+none_bee_param_good_bad <- none_bee_param %>% filter(filenames %in% good_csvs | filenames %in% bad_csvs) %>%
+                                          mutate(bool_good_or_bad = ifelse(filenames %in% good_csvs,1,0),
+                                                 good_or_bad = ifelse(filenames %in% good_csvs,"Good","Bad"))
+none_bee_param_good_bad
+```
+Step AIC to see what predicts good or bad
+
+```{r}
+
+good_hive_glm <- glm(bool_good_or_bad ~ ., data = none_bee_param_good_bad %>% dplyr::select(-c(...1, trial_n, type, days, n,
+                                                   pBrood, pPollen, pHoney, pEmpty,
+                                                   pBroodHeat, pPollenHeat, pHoneyHeat, pEmptyHeat,
+                                                   broodMetric,pollenRing)),
+                     family = "binomial")
+
+stepped_good_model <- stepAIC(good_hive_glm, direction = "both")
+
+
+Anova(stepped_good_model)
+
+
+```
+
+```{r}
+ggplot(none_bee_param_good_bad, aes(x = n, fill = good_or_bad))+
+  geom_histogram(bins = 10)+
+  theme_classic()
+
+ggplot(none_bee_param_good_bad, aes(x = rb, fill = good_or_bad))+
+  geom_histogram(bins = 10)+
+  theme_classic()
+
+ggplot(none_bee_param_good_bad, aes(x = rn, fill = good_or_bad))+
+  geom_histogram(bins = 10)+
+  theme_classic()
+
+ggplot(none_bee_param_good_bad, aes(x = w, fill = good_or_bad))+
+  geom_histogram(bins = 10)+
+  theme_classic()
+
+ggplot(none_bee_param_good_bad, aes(x = pph, fill = good_or_bad))+
+  geom_histogram(bins = 10)+
+  theme_classic()
+
+ggplot(none_bee_param_good_bad, aes(x = ph, fill = good_or_bad))+
+  geom_histogram(bins = 10)+
+  theme_classic()
+
+ggplot(none_bee_param_good_bad, aes(x = pp, fill = good_or_bad))+
+  geom_histogram(bins = 10)+
+  theme_classic()
+
+ggplot(none_bee_param_good_bad, aes(x = k, fill = good_or_bad))+
+  geom_histogram(bins = 10)+
+  theme_classic()
+```
 
 ####
 OLDER CODE, looking at model type, we decided on M2
@@ -325,6 +427,8 @@ ggplot(queen_pos_df_heatmap, aes(x = QueenXRound, y = QueenYRound, color = count
   scale_color_viridis() +
   theme_classic()
 ```
+
+
 
 
 
