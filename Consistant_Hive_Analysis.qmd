@@ -1,0 +1,79 @@
+---
+title: "Consistant Hive Analysis"
+format: html
+editor: visual
+---
+
+```{r Load Packages}
+library(MASS)
+library(tidyverse)
+library(ggplot2)
+library(readr)
+library(viridis)
+library(ggfortify)
+library(bbmle) #For ICtab
+library(car)
+library(emmeans)
+
+ 
+round_any <- function(x, accuracy, f=round){f(x/ accuracy) * accuracy}
+
+```
+
+```{r Read in Data}
+
+# trial_types <- c("all_constant")
+# 
+# for (t in trial_types){
+#   bee_param_df <- list.files(path=paste0("hive_data/heat_",t,"/"), full.names = TRUE) %>%
+#                 lapply(read_csv, show_col_types = FALSE) %>%
+#                 bind_rows %>%
+#                 mutate(filenames = list.files(path=paste0("hive_data/heat_",t,"/"), full.names = TRUE))
+# 
+#   write.csv(bee_param_df,paste0("bee_data_isaac_heat_",t,".csv"),row.names = FALSE)
+# }
+
+```
+
+```{r}
+all_const_bee_param <- read.csv("bee_data_isaac_heat_all_constant.csv") %>% mutate(type = "All") %>% na.omit()
+```
+
+
+```{r}
+ggplot(all_const_bee_param, aes(x = bhd, y = qha, z = pBroodHeat))+
+  geom_contour_filled()+
+  theme_classic()
+```
+
+```{r}
+
+sum_all_const_bee_param_qha_bhd <- all_const_bee_param %>% group_by(bhd,qha) %>%
+                                                           summarise(mean_brood_heat = mean(pBroodHeat),
+                                                                     sd_brood_heat = sd(pBroodHeat))
+
+ggplot(sum_all_const_bee_param_qha_bhd, aes(x = bhd, y = mean_brood_heat, color = as.factor(qha)))+
+  geom_point()+
+  geom_line()+
+  #geom_errorbar(aes(ymin = mean_brood_heat-sd_brood_heat, ymax = mean_brood_heat+sd_brood_heat))+
+  theme_classic()
+
+
+sum_all_const_bee_param_qha_wha <- all_const_bee_param %>% group_by(bhd,wha) %>%
+                                                           summarise(mean_brood_heat = mean(pBroodHeat),
+                                                                     sd_brood_heat = sd(pBroodHeat))
+
+ggplot(sum_all_const_bee_param_qha_wha, aes(x = bhd, y = mean_brood_heat, color = as.factor(wha)))+
+  geom_point()+
+  geom_line()+
+  #geom_errorbar(aes(ymin = mean_brood_heat-sd_brood_heat, ymax = mean_brood_heat+sd_brood_heat))+
+  theme_classic()
+
+```
+
+```{r}
+
+
+
+```
+
