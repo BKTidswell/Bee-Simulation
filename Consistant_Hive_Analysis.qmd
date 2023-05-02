@@ -22,7 +22,7 @@ round_any <- function(x, accuracy, f=round){f(x/ accuracy) * accuracy}
 
 ```{r Read in Data}
 
-# trial_types <- c("all_constant")
+# trial_types <- c("all_constant_v3")
 # 
 # for (t in trial_types){
 #   bee_param_df <- list.files(path=paste0("hive_data/heat_",t,"/"), full.names = TRUE) %>%
@@ -36,7 +36,15 @@ round_any <- function(x, accuracy, f=round){f(x/ accuracy) * accuracy}
 ```
 
 ```{r}
-all_const_bee_param <- read.csv("bee_data_isaac_heat_all_constant.csv") %>% mutate(type = "All") %>% na.omit()
+#all_const_bee_param_v1 <- read.csv("bee_data_isaac_heat_all_constant.csv") %>% mutate(type = "All", version = "v1") %>% na.omit()
+all_const_bee_param_v2 <- read.csv("bee_data_isaac_heat_all_constant_v2.csv") %>% mutate(type = "All", version = "v2") %>% na.omit()
+all_const_bee_param_v3 <- read.csv("bee_data_isaac_heat_all_constant_v3.csv") %>% mutate(type = "All", version = "v3") %>% na.omit()
+
+#all_const_bee_param <- all_const_bee_param_v1 %>% full_join(.,all_const_bee_param_v2) %>% full_join(.,all_const_bee_param_v3)
+
+all_const_bee_param <- all_const_bee_param_v2 %>% full_join(.,all_const_bee_param_v3) %>%
+                     mutate(hive_params = paste0("Rb = ",rb," Rn = ",rn))
+
 ```
 
 
@@ -48,22 +56,45 @@ ggplot(all_const_bee_param, aes(x = bhd, y = qha, z = pBroodHeat))+
 
 ```{r}
 
-sum_all_const_bee_param_qha_bhd <- all_const_bee_param %>% group_by(bhd,qha) %>%
+ggplot(all_const_bee_param, aes(x = as.factor(bhd), y = pBroodHeat, fill = as.factor(bhd)))+
+  facet_wrap(~hive_params)+
+  geom_boxplot()+
+  theme_classic()
+
+ggplot(all_const_bee_param, aes(x = as.factor(qha), y = pBroodHeat, fill = as.factor(qha)))+
+  facet_wrap(~hive_params)+
+  geom_boxplot()+
+  theme_classic()
+
+ggplot(all_const_bee_param, aes(x = as.factor(wha), y = pBroodHeat, fill = as.factor(wha)))+
+  facet_wrap(~hive_params)+
+  geom_boxplot()+
+  theme_classic()
+
+
+```
+
+
+```{r}
+
+sum_all_const_bee_param_qha_bhd <- all_const_bee_param %>% group_by(bhd,qha,hive_params) %>%
                                                            summarise(mean_brood_heat = mean(pBroodHeat),
                                                                      sd_brood_heat = sd(pBroodHeat))
 
 ggplot(sum_all_const_bee_param_qha_bhd, aes(x = bhd, y = mean_brood_heat, color = as.factor(qha)))+
+  facet_wrap(~hive_params)+
   geom_point()+
   geom_line()+
   #geom_errorbar(aes(ymin = mean_brood_heat-sd_brood_heat, ymax = mean_brood_heat+sd_brood_heat))+
   theme_classic()
 
 
-sum_all_const_bee_param_qha_wha <- all_const_bee_param %>% group_by(bhd,wha) %>%
+sum_all_const_bee_param_qha_wha <- all_const_bee_param %>% group_by(bhd,wha,hive_params) %>%
                                                            summarise(mean_brood_heat = mean(pBroodHeat),
                                                                      sd_brood_heat = sd(pBroodHeat))
 
 ggplot(sum_all_const_bee_param_qha_wha, aes(x = bhd, y = mean_brood_heat, color = as.factor(wha)))+
+  facet_wrap(~hive_params)+
   geom_point()+
   geom_line()+
   #geom_errorbar(aes(ymin = mean_brood_heat-sd_brood_heat, ymax = mean_brood_heat+sd_brood_heat))+
@@ -71,9 +102,4 @@ ggplot(sum_all_const_bee_param_qha_wha, aes(x = bhd, y = mean_brood_heat, color 
 
 ```
 
-```{r}
-
-
-
-```
 

@@ -60,7 +60,7 @@ queen_bee_param <- read.csv("bee_data_isaac_heat_queen.csv") %>% mutate(type = "
 none_bee_param <- read.csv("bee_data_isaac_heat_none.csv") %>% mutate(type = "None") %>% mutate(bhd = 0,wha = 0, qha = 0)
 all_bee_param <- read.csv("bee_data_isaac_heat_all.csv") %>% mutate(type = "All")
 
-bee_heat_param_df <- rbind(brood_bee_param,worker_bee_param) %>% rbind(.,queen_bee_param) %>% rbind(.,all_bee_param) %>% rbind(.,none_bee_param)
+bee_heat_param_df <- rbind(brood_bee_param,worker_bee_param) %>% rbind(.,queen_bee_param) %>% rbind(.,all_bee_param) 
 ```
 
 
@@ -373,7 +373,7 @@ summary(pollenRingGLM_step)
 ```
 
 ```{r}
-queen_pos_df <- read.csv("queen_pos_data_0_5.csv")
+queen_pos_df <- read.csv("queen_pos_data_28_5.csv")
 
 queen_pos_df_heatmap <- queen_pos_df %>% mutate(QueenXRound = round_any(QueenX,5),
                                                 QueenYRound = round_any(QueenY,5)) %>%

@@ -1,0 +1,108 @@
+---
+title: "Queen Heat Avoidence Modeling"
+format: html
+editor: visual
+---
+
+The purpose of this document is ro provide models as to what the queen head avoidence looks like at different levels and distances away from the center of the heat
+
+```{r}
+library(MASS)
+library(tidyverse)
+library(ggplot2)
+library(readr)
+library(viridis)
+library(ggfortify)
+library(circular)
+```
+
+```{r}
+sd_vectorized_pvonmises <- function(q, mu, kappas){
+  output <- c()
+  
+  for(k in kappas){
+    new_val <- pvonmises(q, mu=mu, kappa = k, tol = 1e-020)
+    output <- c(output,new_val)
+  }
+  
+  return(output)
+}
+```
+
+
+Using a set of parameters, calculate the sd and then the probability of getting 180, that is, continuing on that straight line to the heat
+
+pi is 180 degrees in radians
+
+```{r warning=FALSE}
+
+qhas <- c(0,0.25,0.5,0.75,1)
+distances <- c(1,5,10,15,20,30,40,50,60)
+
+qha_m_df <- expand.grid(qha = qhas,distance = distances)
+
+qha_m_df <- qha_m_df %>% mutate(qha_sd = (1 - qha)*5,
+                                angle_sd = qha_sd - (qha_sd - 5)*(distance/sqrt(34^2+48^2)),
+                                #Times two for -pi as well
+                                prob_straight = pnorm(pi, mean = 0, sd = angle_sd, lower.tail	= FALSE),
+                                #Only gets values that are away from the center
+                                prob_away = pnorm(pi/2, mean = 0, sd = angle_sd, lower.tail	= TRUE) -
+                                            pnorm(-pi/2, mean = 0, sd = angle_sd, lower.tail	= TRUE),
+                                prob_away_circ = (sd_vectorized_pvonmises(q = -3*pi/4, mu=0, kappa = 1/(angle_sd**2))*2))
+
+```
+
+
+
+```{r}
+
+ggplot(qha_m_df, aes(x = distance, y = prob_straight, color = as.factor(qha)))+
+  geom_point()+
+  geom_line()+
+  ylim(0,1)+
+  #scale_colour_viridis_ds()+
+  theme_classic()
+
+ggplot(qha_m_df, aes(x = distance, y = prob_away, color = as.factor(qha)))+
+  geom_point()+
+  geom_line()+
+  ylim(0,1)+
+  #scale_colour_viridis_ds()+
+  theme_classic()
+
+ggplot(qha_m_df, aes(x = distance, y = prob_away_circ, color = as.factor(qha)))+
+  geom_point()+
+  geom_line()+
+  ylim(0,0.5)+
+  #scale_colour_viridis_ds()+
+  theme_classic()
+
+
+```
+
+```{r}
+ff <- function(x) pwrappednormal(x, mu=circular(pi), rho=0.64)
+curve.circular(ff, join=FALSE, xlim=c(-2, 2), ylim=c(-2, 2), 
+  to=(2*pi-3*.Machine$double.eps), modulo="asis", nosort=TRUE, 
+  main="Probability of a Wrapped Normal Distribution \n mu=pi, 
+  rho=0.7, from=0")
+
+pwrappednormal(pi, mu=circular(pi), rho=0.64)
+
+pvonmises(-pi/2, 0, 0, tol = 1e-020)
+
+#1/(1.25**2)
+
+ff <- function(x) pvonmises(x, mu=0, kappa=0)
+curve.circular(ff, join=FALSE, xlim=c(-2, 2), ylim=c(-2, 1), from=(-2*pi),
+  to=(2*pi), modulo="asis", nosort=TRUE, 
+  main="Probability of a VonMises Distribution \n mu=pi, kappa=10")
+
+mu <- 0
+sd <- 1
+x <- seq(from=-pi, to=pi, length.out=1000)
+plot(x, dvonmises(x, mu=mu, k=1/sd), type='l', lwd=2, xlab='Angle', ylab='Probability density', ylim = c(0,1))
+
+
+```
+
